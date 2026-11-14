@@ -172,6 +172,8 @@ data class TalkTurn(
     val targets: List<String> = emptyList(),
     /** the child's answer as recorded sound (WAV), when the AI listens itself; then [heard] is empty */
     val audio: ByteArray? = null,
+    /** less than a kilometre to go: the talk winds down (not the last turn yet) */
+    val nearing: Boolean = false,
 )
 
 /** What 부릉이 answers. Checked by [TalkRules] before anything is said to a child. */

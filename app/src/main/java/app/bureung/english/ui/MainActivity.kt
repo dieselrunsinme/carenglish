@@ -433,7 +433,7 @@ class MainActivity : Activity() {
         val e = Hub.engine
         verifyStatus.text = when {
             !e.isActive -> "대화가 멈춰 있어요. 오른쪽에서 시작해 주세요."
-            e.state == EngineState.PAUSED -> "잠깐 멈췄어요."
+            e.state == EngineState.PAUSED -> "⏸ 잠깐 멈췄어요. 오른쪽의 '▶ 이어서'를 누르면 계속해요. (보낸 대답은 그때 들어가요)"
             Hub.listening -> "✍️ 아이 차례예요. 대답을 적고 보내기를 눌러 주세요."
             else -> "🔊 부릉이가 말하는 중이에요. 미리 적어 보내면 차례가 오자마자 들어가요."
         }

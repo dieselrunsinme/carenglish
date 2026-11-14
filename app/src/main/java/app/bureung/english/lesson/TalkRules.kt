@@ -9,6 +9,8 @@ object TalkRules {
     const val LISTEN_SEC = 8.0
     /** the "your turn" cue plays this long before the microphone opens */
     const val CUE_MS = 520L
+    /** from a kilometre out: this many more easy exchanges, then the last turn and the goodbye */
+    const val WIND_DOWN_TURNS = 2
     /** with less than this left after an answer, 부릉이 reacts and says goodbye instead of asking again */
     const val LAST_TURN_SEC = 40
     /** with less than this left, there is no time to listen at all */
@@ -92,6 +94,9 @@ object TalkRules {
 
     /** how many words a sentence has (the unit the steps are written in) */
     fun words(line: String?): Int = line?.split(' ')?.count { it.any(Char::isLetterOrDigit) } ?: 0
+
+    /** the word count of the longest sentence in what was said (the steps limit each sentence, not the whole turn) */
+    fun longest(line: String?): Int = line?.let { Sentences.split(it).maxOfOrNull(::words) } ?: 0
 
     fun ok(line: String, maxWords: Int): Boolean {
         val words = line.split(' ').count { it.isNotBlank() }

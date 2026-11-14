@@ -128,6 +128,7 @@ class LessonEngine(
     private var chatEndsAt = 0L
     private var chatOver = false
     private var nearEnd = false
+    private var nearTurns = 0
     private var chatWho = 0
     private var chatTurnsWithChild = 0
     private var chatTurn = 0
@@ -161,7 +162,7 @@ class LessonEngine(
         cards.clear(); heard.clear(); done.clear(); diary.clear(); asks = 0; hits = 0; turn = 0
         lastCard = null
         carEvents.clear(); chatHistory.clear()
-        chatEndsAt = 0L; chatOver = false; nearEnd = false; chatWho = 0; chatTurnsWithChild = 0; chatTurn = 0
+        chatEndsAt = 0L; chatOver = false; nearEnd = false; nearTurns = 0; chatWho = 0; chatTurnsWithChild = 0; chatTurn = 0
         chatSilences = 0; chatErrors = 0; chatQuestions = 0
         plan.chat?.let { c ->
             scene = Scene(c.moment.outsideC, c.moment.raining)
@@ -226,8 +227,13 @@ class LessonEngine(
      * The navigation's latest remaining time. Close to arrival the lesson jumps to its goodbye; if the rest will not
      * fit, optional blocks ahead are dropped; in a traffic jam the story is added.
      */
-    /** Less than a kilometre to go: the conversation stops asking and says goodbye after the next answer. */
+    /**
+     * Less than a kilometre to go: the conversation starts to wind down. 부릉이 is told to wrap the topic up over
+     * the next exchanges ([TalkRules.WIND_DOWN_TURNS]); after those, or when the time runs out, comes the last
+     * turn and the goodbye.
+     */
     fun nearDestination(near: Boolean) {
+        if (!near) nearTurns = 0
         nearEnd = near
     }
 
@@ -470,7 +476,9 @@ class LessonEngine(
             count(silent, said)
             if (chatSilences >= TalkRules.MAX_SILENCES) return endOnSilence()
         }
-        val last = nearEnd || chatLeft() < TalkRules.LAST_TURN_SEC
+        val last = chatLeft() < TalkRules.LAST_TURN_SEC || (nearEnd && nearTurns >= TalkRules.WIND_DOWN_TURNS)
+        val nearing = nearEnd && !last
+        if (nearEnd) nearTurns += 1
         val switch = !last && !silent && c.children.size > 1 && chatTurnsWithChild + 1 >= TalkRules.SWITCH_EVERY
         val next = if (switch) c.children[(chatWho + 1) % c.children.size] else child
         val turn = TalkTurn(
@@ -491,6 +499,7 @@ class LessonEngine(
             situation = c.scenario?.situation,
             targets = c.scenario?.targets.orEmpty(),
             audio = audio,
+            nearing = nearing,
         )
         carEvents.clear()
 

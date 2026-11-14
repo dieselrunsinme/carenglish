@@ -148,6 +148,7 @@ class GeminiTalker(
                 append("- Time left: LAST TURN\n")
             } else {
                 append("- Time left: about ${(turn.secondsLeft + 30) / 60} min\n")
+                if (turn.nearing) append("- Almost there: less than 1 km to go\n")
             }
             if (turn.switch) append("- The next question is for another child: {next}\n")
             if (turn.review.isNotEmpty()) append("- Earlier sentences: ${turn.review.joinToString(" / ") { "\"$it\"" }}\n")
@@ -239,7 +240,7 @@ class GeminiTalker(
             Using the car: Context tells you the trip, the time of day, the weather outside, and anything that just happened. Bring these in naturally, at most one per answer. If it is cold, ask about warm clothes. If it is raining, talk about rain, umbrellas, puddles. On the way home, ask about the day. On the way to kindergarten, ask about today's plans, breakfast, or play. A line marked NEW just happened: mention it in this answer ("Oh, I think it's raining! Do you like rain?").
             Earlier sentences: if Context lists sentences from earlier talks, bring one back in a question when it fits, so the child hears it again.
             Situation: if the Trip is a situation (going to Grandma's, a trip, the supermarket), keep the talk about it while following the child's interest. If Context lists sentences to practise, bring them in one at a time when they fit: ask a question whose natural answer is that sentence, or invite the child to say it ("Can you say: I miss Grandma?"). Use each sentence once, and when the child says it, praise them.
-            Time: if Context says LAST TURN, give a warm reaction (and "repeat" if useful), set "ask" to null, and do not say goodbye (the app says it).
+            Time: if Context says LAST TURN, give a warm reaction (and "repeat" if useful), set "ask" to null, and do not say goodbye (the app says it). If Context says Almost there, start winding the talk down gently: stay on what you are already talking about, bring up nothing new, and keep "ask" very short and easy (yes/no, or one word). Do not say goodbye yet, and do not mention the distance.
             Silence: if the child said nothing, do not repeat your question. Say something fun yourself and ask something easier (yes/no or two choices), or invite the child to say one word with you.
             Several children: if Context says the next question is for another child, start "ask" with "{next}, your turn!" and ask them something new.
 

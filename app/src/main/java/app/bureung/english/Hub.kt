@@ -175,7 +175,13 @@ object Hub : LessonEvents, CarSignals.Listener {
             focus = Focus(
                 app, main,
                 isOwnVoice = { voice.pleosBusy || ears.pleosBusy },
-                onPause = { engine.pause() },
+                onPause = {
+                    if (engine.state == EngineState.PLAYING) {
+                        note("다른 소리(전화, 음성 안내 등)가 소리 우선권을 가져가서 잠깐 멈춤")
+                        verifyNote("앱", "다른 소리가 소리 우선권을 가져가서 잠깐 멈췄어요. 돌아오면 이어서 하고, 안 돌아오면 '▶ 이어서'를 눌러 주세요.")
+                    }
+                    engine.pause()
+                },
                 onResume = { engine.resume() },
             )
             session = runCatching { mediaSession() }.getOrNull()
@@ -432,8 +438,8 @@ object Hub : LessonEvents, CarSignals.Listener {
                 if (reply == null) {
                     lines += "Level $n ${level.nameKo}: 실패 (${talker.lastError ?: "안전 규칙을 통과하지 못했어요"})"
                 } else {
-                    val ask = TalkRules.words(reply.ask)
-                    val repeat = TalkRules.words(reply.repeat)
+                    val ask = TalkRules.longest(reply.ask)
+                    val repeat = TalkRules.longest(reply.repeat)
                     val ok = ask <= level.maxWords && repeat <= level.maxRepeat
                     if (ok) within += 1
                     asked += ask
@@ -626,7 +632,7 @@ object Hub : LessonEvents, CarSignals.Listener {
 
     override fun onLine(text: String, lang: Lang) {
         caption = text to lang
-        verifyNote(if (lang == Lang.EN) "부릉이" else "안내", if (lang == Lang.EN) "$text (${TalkRules.words(text)}단어)" else text)
+        verifyNote(if (lang == Lang.EN) "부릉이" else "안내", if (lang == Lang.EN) "$text (가장 긴 문장 ${TalkRules.longest(text)}단어)" else text)
         changed()
     }
 
@@ -749,7 +755,13 @@ object Hub : LessonEvents, CarSignals.Listener {
             }
 
             override fun onPause() {
-                main.post { engine.pause() }
+                main.post {
+                    if (engine.state == EngineState.PLAYING) {
+                        note("미디어 키(핸들 버튼 등)로 잠깐 멈춤")
+                        verifyNote("앱", "미디어 키로 잠깐 멈췄어요. '▶ 이어서'를 눌러 주세요.")
+                    }
+                    engine.pause()
+                }
             }
 
             override fun onStop() {

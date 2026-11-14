@@ -499,18 +499,21 @@ class LessonTest {
     }
 
     @Test
-    fun aKilometreFromTheDestinationTheTalkWrapsUp() {
+    fun aKilometreFromTheDestinationTheTalkWindsDown() {
         val t = Talk(child = { "블록" }) { turn -> if (turn.last) blocks.copy(ask = null) else blocks }
         t.engine.start(Planner.chat(TripMode.FROM_SCHOOL, 600, moment.copy(hour = 16)))
         t.clock.run(untilMs = 60_000)
-        assertTrue(t.talker.turns.none { it.last })
+        val before = t.talker.turns.size
+        assertTrue(t.talker.turns.none { it.last || it.nearing })
         t.engine.nearDestination(true)
         t.clock.run()
-        // one more answer is heard, then goodbye: long before the ten minutes are up
-        assertTrue(t.talker.turns.last().last)
-        assertEquals(1, t.talker.turns.count { it.last })
+        // not cut short: two more easy exchanges that wind the talk down, then the last turn and the goodbye
+        val after = t.talker.turns.drop(before)
+        assertEquals(listOf(true, true, false), after.map { it.nearing })
+        assertEquals(listOf(false, false, true), after.map { it.last })
         assertTrue(t.summary.completed)
-        assertTrue("ended at ${t.seconds}s", t.seconds < 150)
+        assertTrue("ended at ${t.seconds}s", t.seconds < 240)
+        assertEquals(7, TalkRules.longest("Breakfast gives you so much energy! What did you eat for breakfast today?"))
     }
 
     @Test
