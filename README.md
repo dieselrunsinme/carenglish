@@ -110,7 +110,7 @@ Pleos SDK는 ON_DEVICE 모드만 쓰므로 Client ID/Secret이 필요 없고, �
 - 앱을 처음 열면 보호자 동의 화면이 먼저 나옵니다. 동의해야 마이크 권한을 묻고 대화할 수 있고, 설정에서 언제든 끌 수 있습니다.
 - AI로 가는 것은 그 대답 소리와 대화의 글자뿐이고, 글자에서는 아이들 이름을 가립니다. 목적지와 위치는 보내지 않습니다.
 - 앱 서버나 계정이 없습니다. 기록(아이가 한 말, 문장, 리포트)은 기기 안의 SharedPreferences에만 있고, 설정에서 지울 수 있습니다.
-- API 키는 저장소에 없습니다. `local.properties`에서 빌드할 때만 읽습니다.
+- API 키는 소스 코드에 없습니다. `local.properties`에서 빌드할 때만 읽습니다. `apk/`의 심사용 APK에는 월 3만 원 지출 한도를 건 심사용 키가 들어 있고, 심사가 끝나면 폐기합니다([apk/README.md](apk/README.md)).
 
 ## 빌드
 
@@ -125,8 +125,8 @@ Android Studio에서 이 폴더를 열고 Gradle 동기화 후 **Build ▸ Build
 
 1. Android Studio ▸ SDK Manager ▸ SDK Update Sites에 Pleos Connect 이미지 주소를 추가하고, Automotive ▸ Pleos Connect v2.1.0으로 AVD를 만듭니다(RAM 4GB, Boot option **Cold boot**).
 2. `adb install -r apk/bureung-english.apk` 후 앱을 열고 권한을 허용합니다.
-3. 동의 화면에서 **동의하고 시작하기**를 누르고, 에뮬레이터 ⋯ ▸ Microphone ▸ "Virtual microphone uses host audio input"을 켭니다(에뮬레이터를 켤 때마다).
-4. **바로 대화 시작하기**나 상황 하나를 누르거나, Virtual Console에서 기어를 **D**로 바꿉니다(3초 뒤 자동 시작). '띠링' 소리가 나면 맥 마이크에 대고 말합니다.
+3. 동의 화면에서 **동의하고 시작하기**를 누르고, 에뮬레이터 ⋯(Extended Controls) ▸ Microphone ▸ **Enable Host Microphone Access**를 켭니다(에뮬레이터를 켤 때마다). 마이크 없이 보려면 설정 ▸ **검증 모드 켜기**에서 아이 대답을 타이핑으로 넣을 수 있습니다.
+4. **바로 대화 시작하기**나 상황 하나를 누르거나, Virtual Console에서 기어를 **D**로 바꿉니다(3초 뒤 자동 시작). '띵동' 소리가 나면 마이크에 대고 말합니다.
 5. 내비게이션에서 목적지(예: 'OO유치원')를 정하고 모의 주행을 켜면 남은 시간에 맞춰 대화 길이가 정해집니다. 와이퍼를 켜거나 바깥 온도를 낮추면 부릉이의 말이 달라집니다.
 
 설정 ▸ **시연 도구**에는 Virtual Console 없이 주행(D)·정차(P), 가상 길안내, 비, 도착 1km 전, 도착을 흉내 내는 버튼이 있습니다. 시연 도구로 바꾼 값은 화면에 '시연 신호'로 표시됩니다.
