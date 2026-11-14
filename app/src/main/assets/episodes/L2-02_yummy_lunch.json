@@ -1,0 +1,128 @@
+{
+  "id": "L2-02",
+  "level": 2,
+  "title": "Yummy Lunchbox",
+  "titleKo": "맛있는 도시락",
+  "emoji": "🍱",
+  "words": [
+    {"id": "apple", "en": "apple", "ko": "사과", "emoji": "🍎", "clue": "It's red and round. It's crunchy! Crunch, crunch."},
+    {"id": "banana", "en": "banana", "ko": "바나나", "emoji": "🍌", "clue": "It's long and yellow. Monkeys love it!"},
+    {"id": "milk", "en": "milk", "ko": "우유", "emoji": "🥛", "clue": "It's white. You drink it. Glug, glug, glug!"},
+    {"id": "egg", "en": "egg", "ko": "달걀", "emoji": "🥚", "clue": "It's white outside and yellow inside. A hen lays it."}
+  ],
+  "blocks": [
+    {
+      "type": "GREETING",
+      "steps": [
+        {"en": "Knock, knock! What's in my lunchbox?"},
+        {"ko": "오늘은 도시락 속 음식을 영어로 말해 봐요."},
+        {"en": "Are you hungry? Say, yes!"},
+        {"ask": "Yes!", "accept": ["yes", "yeah", "hungry", "네", "응"], "wait": 3.5}
+      ]
+    },
+    {
+      "type": "EXPRESSION",
+      "steps": [
+        {"en": "Open the lunchbox. Crunch, crunch! It's red and round."},
+        {"card": "apple"},
+        {"en": "It's an apple!"},
+        {"echo": "Apple."},
+        {"en": "Can you say, apple?"},
+        {"ask": "Apple!", "accept": ["apple"], "word": "apple", "wait": 4.5},
+        {"en": "What's next? It's long and yellow."},
+        {"card": "banana"},
+        {"en": "It's a banana!"},
+        {"ko": "영어로 하면 소리가 조금 달라요. 잘 듣고 따라 해요."},
+        {"echo": "Banana."},
+        {"en": "Can you say, banana?"},
+        {"ask": "Banana!", "accept": ["banana"], "word": "banana", "wait": 4.5},
+        {"en": "Glug, glug, glug! It's white."},
+        {"card": "milk"},
+        {"en": "It's milk!"},
+        {"echo": "Milk."},
+        {"en": "Can you say, milk?"},
+        {"ask": "Milk!", "accept": ["milk"], "word": "milk", "wait": 4.5},
+        {"en": "Tap, tap, crack! What is it?"},
+        {"card": "egg"},
+        {"en": "It's an egg!"},
+        {"echo": "Egg."},
+        {"en": "Can you say, egg?"},
+        {"ask": "Egg!", "accept": ["egg", "eggs"], "word": "egg", "wait": 4.5},
+        {"en": "Let's play a guessing game!"},
+        {"ko": "잘 듣고 무엇인지 영어로 말해 봐요."},
+        {"en": "Crunch, crunch! Is it milk, or an apple?"},
+        {"ask": "An apple!", "accept": ["apple"], "word": "apple", "wait": 4.5},
+        {"en": "Glug, glug! Is it an egg, or milk?"},
+        {"ask": "Milk!", "accept": ["milk"], "word": "milk", "wait": 4.5},
+        {"en": "Tap, tap, crack! What is it?"},
+        {"ask": "An egg!", "accept": ["egg"], "word": "egg", "wait": 4.5},
+        {"en": "Now let's say what we like."},
+        {"ko": "좋아하는 음식은 'I like' 다음에 말해요."},
+        {"echo": "I like apples."},
+        {"echo": "I like bananas."},
+        {"en": "Your turn! Do you like milk? Say, I like milk!"},
+        {"ask": "I like milk!", "accept": ["like milk", "milk"], "word": "milk", "wait": 5.5},
+        {"en": "Monkeys say, I like bananas! What about you? Say, I like bananas."},
+        {"ask": "I like bananas!", "accept": ["like banana", "banana"], "word": "banana", "wait": 5.5}
+      ]
+    },
+    {
+      "type": "CHANT",
+      "drop": 1,
+      "steps": [
+        {"en": "Let's chant! Say it after me."},
+        {"sfx": "beat"},
+        {"echo": "Apple, apple, crunch, crunch, crunch!"},
+        {"echo": "Banana, banana, yum, yum, yum!"},
+        {"echo": "Milk, milk, glug, glug, glug!"},
+        {"echo": "Egg, egg, crack, crack, crack!"},
+        {"echo": "Lunchbox, lunchbox, yummy, yummy, yum!"},
+        {"sfx": "ding"},
+        {"en": "Yummy chanting!"}
+      ]
+    },
+    {
+      "type": "ROLEPLAY",
+      "drop": 2,
+      "steps": [
+        {"en": "Let's play picnic! I'm hungry. What's in your lunchbox?"},
+        {"ko": "{call}, 소풍 놀이해요. 도시락에 뭐가 들었나요?"},
+        {"en": "I want something red and crunchy."},
+        {"ask": "An apple!", "accept": ["apple"], "word": "apple", "wait": 4.5},
+        {"en": "Thank you! Crunch, crunch. Now I'm thirsty. Glug, glug?"},
+        {"ask": "Milk!", "accept": ["milk"], "word": "milk", "wait": 4.5},
+        {"en": "Mmm, milk! And something long and yellow, please."},
+        {"ask": "A banana!", "accept": ["banana"], "word": "banana", "wait": 4.5},
+        {"en": "Tap, tap, crack! Oh, what's this? It's white outside and yellow inside."},
+        {"ask": "An egg!", "accept": ["egg"], "word": "egg", "wait": 4.5},
+        {"en": "What a yummy picnic! Thank you, {name}!"}
+      ]
+    },
+    {
+      "type": "STORY",
+      "extra": true,
+      "steps": [
+        {"en": "Story time! Listen carefully."},
+        {"ko": "배고픈 곰 이야기를 들어 봐요."},
+        {"en": "Little Bear was hungry. Grr, my tummy!"},
+        {"en": "Mommy Bear gave him an apple. Crunch, crunch. Still hungry!"},
+        {"en": "Daddy Bear gave him a banana. Yum, yum. Still hungry!"},
+        {"en": "Grandma Bear gave him an egg and some milk. Glug, glug!"},
+        {"en": "Little Bear said, I'm full! Thank you! The end."},
+        {"en": "What did Little Bear drink?"},
+        {"ask": "Milk!", "accept": ["milk"], "word": "milk", "wait": 4.5}
+      ]
+    },
+    {
+      "type": "WRAPUP",
+      "steps": [
+        {"en": "Great job, {name}! Today we said apple, banana, milk, and egg."},
+        {"en": "What do you like? I like bananas!"},
+        {"ask": "I like apples!", "accept": ["like", "apple", "banana", "milk", "egg"], "open": true, "wait": 5},
+        {"ko": "점심 맛있게 먹고, 집에 갈 때 다시 만나요!"},
+        {"en": "Enjoy your lunch! Bye-bye!"},
+        {"sfx": "yay"}
+      ]
+    }
+  ]
+}

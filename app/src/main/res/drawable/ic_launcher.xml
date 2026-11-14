@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- a small car in Active Blue with a speech bubble -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#F6F3F2" android:pathData="M0,0h108v108h-108z" />
+    <path android:fillColor="#002C5F" android:pathData="M58,18h30a8,8 0,0 1,8 8v14a8,8 0,0 1,-8 8h-16l-8,8v-8h-6a8,8 0,0 1,-8 -8v-14a8,8 0,0 1,8 -8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M64,30h22v4h-22zM64,37h14v4h-14z" />
+    <path android:fillColor="#00AAD2" android:pathData="M20,66l8,-14a8,8 0,0 1,7 -4h24a8,8 0,0 1,7 4l8,14h4a6,6 0,0 1,6 6v10a4,4 0,0 1,-4 4h-66a4,4 0,0 1,-4 -4v-10a6,6 0,0 1,6 -6z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M31,64l6,-10h11v10zM52,64v-10h9l6,10z" />
+    <path android:fillColor="#002C5F" android:pathData="M34,86m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0" />
+    <path android:fillColor="#002C5F" android:pathData="M74,86m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0" />
+    <path android:fillColor="#FFFFFF" android:pathData="M34,86m-3.5,0a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0" />
+    <path android:fillColor="#FFFFFF" android:pathData="M74,86m-3.5,0a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0" />
+</vector>

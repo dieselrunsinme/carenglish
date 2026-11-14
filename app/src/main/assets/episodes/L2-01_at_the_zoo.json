@@ -1,0 +1,136 @@
+{
+  "id": "L2-01",
+  "level": 2,
+  "title": "At the Zoo",
+  "titleKo": "동물원에 가요",
+  "emoji": "🦁",
+  "words": [
+    {"id": "elephant", "en": "elephant", "ko": "코끼리", "emoji": "🐘", "clue": "It's big and gray. It has a long, long nose. Toot, toot!"},
+    {"id": "lion", "en": "lion", "ko": "사자", "emoji": "🦁", "clue": "It says, roar! It is the king of the animals."},
+    {"id": "monkey", "en": "monkey", "ko": "원숭이", "emoji": "🐒", "clue": "It loves bananas. It says, ooh, ooh, ah, ah!"},
+    {"id": "giraffe", "en": "giraffe", "ko": "기린", "emoji": "🦒", "clue": "It has a very, very long neck. It eats leaves from tall trees."}
+  ],
+  "blocks": [
+    {
+      "type": "GREETING",
+      "steps": [
+        {"en": "Today, we're going to the zoo!"},
+        {"ko": "오늘은 동물원 친구들을 만나러 가요!"},
+        {"en": "Are you ready? Say, yes!"},
+        {"ask": "Yes!", "accept": ["yes", "yeah", "ready", "okay", "네", "응"], "wait": 3.5}
+      ]
+    },
+    {
+      "type": "EXPRESSION",
+      "steps": [
+        {"en": "Listen. Toot, toot! Who is it?"},
+        {"card": "elephant"},
+        {"en": "It's an elephant!"},
+        {"echo": "Elephant."},
+        {"en": "The elephant has a long, long nose."},
+        {"en": "Can you say, elephant?"},
+        {"ask": "Elephant!", "accept": ["elephant"], "word": "elephant", "wait": 4.5},
+        {"en": "Listen. Roar! Who is it?"},
+        {"card": "lion"},
+        {"en": "It's a lion!"},
+        {"echo": "Lion."},
+        {"ko": "사자는 크게 어흥 하고 울어요."},
+        {"en": "Can you say, lion?"},
+        {"ask": "Lion!", "accept": ["lion"], "word": "lion", "wait": 4.5},
+        {"en": "Listen. Ooh, ooh, ah, ah! Who is it?"},
+        {"card": "monkey"},
+        {"en": "It's a monkey!"},
+        {"echo": "Monkey."},
+        {"en": "Can you say, monkey?"},
+        {"ask": "Monkey!", "accept": ["monkey"], "word": "monkey", "wait": 4.5},
+        {"en": "Look up, up, up! Who is so tall?"},
+        {"card": "giraffe"},
+        {"en": "It's a giraffe!"},
+        {"echo": "Giraffe."},
+        {"ko": "기린은 목이 아주 길어요."},
+        {"en": "Can you say, giraffe?"},
+        {"ask": "Giraffe!", "accept": ["giraffe"], "word": "giraffe", "wait": 4.5},
+        {"en": "Let's play a listening game!"},
+        {"ko": "잘 듣고 누구인지 영어로 말해 봐요."},
+        {"en": "Toot, toot! Is it a lion, or an elephant?"},
+        {"ask": "An elephant!", "accept": ["elephant"], "word": "elephant", "wait": 4.5},
+        {"en": "Ooh, ooh, ah, ah! Is it a monkey, or a giraffe?"},
+        {"ask": "A monkey!", "accept": ["monkey"], "word": "monkey", "wait": 4.5},
+        {"en": "Roar! Who is it?"},
+        {"ask": "A lion!", "accept": ["lion"], "word": "lion", "wait": 4.5},
+        {"en": "Now let's make a sentence."},
+        {"ko": "이번엔 '사자가 보여요'를 영어로 말해 봐요."},
+        {"echo": "I see a lion."},
+        {"echo": "I see a monkey."},
+        {"en": "Your turn! What do you see? Say, I see an elephant."},
+        {"ask": "I see an elephant!", "accept": ["see an elephant", "see a elephant", "elephant"], "word": "elephant", "wait": 5.5},
+        {"en": "Now, look up. Who is so tall? Say, I see a giraffe."},
+        {"ask": "I see a giraffe!", "accept": ["see a giraffe", "giraffe"], "word": "giraffe", "wait": 5.5}
+      ]
+    },
+    {
+      "type": "CHANT",
+      "drop": 1,
+      "steps": [
+        {"en": "Let's chant! Say it after me."},
+        {"sfx": "beat"},
+        {"echo": "Elephant, elephant, toot, toot, toot!"},
+        {"echo": "Lion, lion, roar, roar, roar!"},
+        {"echo": "Monkey, monkey, ooh, ooh, ah!"},
+        {"echo": "Giraffe, giraffe, tall, tall, tall!"},
+        {"echo": "Zoo, zoo, we love the zoo!"},
+        {"sfx": "ding"},
+        {"en": "Great chanting!"}
+      ]
+    },
+    {
+      "type": "ROLEPLAY",
+      "drop": 2,
+      "steps": [
+        {"en": "Let's play zoo! I'm the zookeeper. You're my helper."},
+        {"ko": "{call}, 사육사 도우미가 되어 줄래요?"},
+        {"en": "Oh! Someone is hungry. Ooh, ooh, ah, ah! Who is it?"},
+        {"ask": "It's a monkey!", "accept": ["monkey"], "word": "monkey", "wait": 4.5},
+        {"en": "Here's a banana, monkey. Yummy!"},
+        {"en": "Who has a long, long neck?"},
+        {"ask": "It's a giraffe!", "accept": ["giraffe"], "word": "giraffe", "wait": 4.5},
+        {"en": "Roar! Roar! Who is so loud?"},
+        {"ask": "It's a lion!", "accept": ["lion"], "word": "lion", "wait": 4.5},
+        {"en": "Splash, splash! Someone wants water. Who has a long, long nose?"},
+        {"ask": "It's an elephant!", "accept": ["elephant"], "word": "elephant", "wait": 4.5},
+        {"en": "Here's some water, elephant. Toot, toot! Thank you!"},
+        {"en": "Thank you, helper! You're a great zookeeper, {name}!"}
+      ]
+    },
+    {
+      "type": "STORY",
+      "extra": true,
+      "steps": [
+        {"en": "Story time! Listen carefully."},
+        {"ko": "원숭이 이야기를 들어 봐요."},
+        {"en": "Little Monkey was hungry. Ooh, ooh, ah, ah!"},
+        {"en": "He saw a big, gray elephant. Elephant, do you have a banana?"},
+        {"en": "No, sorry! Toot, toot!"},
+        {"en": "He saw a tall giraffe. Giraffe, do you have a banana?"},
+        {"en": "No, sorry! I eat leaves."},
+        {"en": "He saw a lion. Lion, do you have a banana?"},
+        {"en": "Roar! No!"},
+        {"en": "Little Monkey looked up. A big, yellow banana in the tree!"},
+        {"en": "Yummy, yummy! The end."},
+        {"en": "Who found the banana?"},
+        {"ask": "Little Monkey!", "accept": ["monkey"], "word": "monkey", "wait": 4.5}
+      ]
+    },
+    {
+      "type": "WRAPUP",
+      "steps": [
+        {"en": "Wow, {name}! Today we met an elephant, a lion, a monkey, and a giraffe."},
+        {"en": "Which animal do you like? I like the giraffe!"},
+        {"ask": "I like the lion!", "accept": ["like", "elephant", "lion", "monkey", "giraffe"], "open": true, "wait": 5},
+        {"ko": "집에 갈 때 다시 만나서 복습해요!"},
+        {"en": "Have a great day! Bye-bye!"},
+        {"sfx": "yay"}
+      ]
+    }
+  ]
+}

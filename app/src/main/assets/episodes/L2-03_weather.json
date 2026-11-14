@@ -1,0 +1,125 @@
+{
+  "id": "L2-03",
+  "level": 2,
+  "title": "Sunny or Rainy?",
+  "titleKo": "오늘 날씨는?",
+  "emoji": "🌦️",
+  "words": [
+    {"id": "sun", "en": "sun", "ko": "해", "emoji": "☀️", "clue": "It's hot and bright. It's up in the sky in the daytime."},
+    {"id": "rain", "en": "rain", "ko": "비", "emoji": "🌧️", "clue": "Water falls from the sky. Drip, drop, drip, drop!"},
+    {"id": "cloud", "en": "cloud", "ko": "구름", "emoji": "☁️", "clue": "It's white and fluffy. It floats in the sky."},
+    {"id": "umbrella", "en": "umbrella", "ko": "우산", "emoji": "☂️", "clue": "You open it when it rains. Pop!"}
+  ],
+  "blocks": [
+    {
+      "type": "GREETING",
+      "steps": [
+        {"en": "Look out the window. What's the weather like?"},
+        {"ko": "창밖을 봐요. 오늘 날씨는 어때요?"},
+        {"en": "Today, let's talk about the weather!"}
+      ]
+    },
+    {
+      "type": "EXPRESSION",
+      "steps": [
+        {"en": "It's hot and bright. Look up in the sky!"},
+        {"card": "sun"},
+        {"en": "It's the sun!"},
+        {"echo": "Sun."},
+        {"en": "Can you say, sun?"},
+        {"ask": "Sun!", "accept": ["sun", "sunny"], "word": "sun", "wait": 4.5},
+        {"en": "Drip, drop, drip, drop! What is it?"},
+        {"card": "rain"},
+        {"en": "It's rain!"},
+        {"echo": "Rain."},
+        {"en": "Can you say, rain?"},
+        {"ask": "Rain!", "accept": ["rain", "rainy"], "word": "rain", "wait": 4.5},
+        {"en": "It's white and fluffy, like cotton candy."},
+        {"card": "cloud"},
+        {"en": "It's a cloud!"},
+        {"echo": "Cloud."},
+        {"en": "Can you say, cloud?"},
+        {"ask": "Cloud!", "accept": ["cloud", "clouds", "cloudy"], "word": "cloud", "wait": 4.5},
+        {"en": "When it rains, open it. Pop!"},
+        {"card": "umbrella"},
+        {"en": "It's an umbrella!"},
+        {"echo": "Umbrella."},
+        {"ko": "우산은 영어로 세 박자예요. 박수 치며 따라 해요."},
+        {"echo": "Um, brel, la. Umbrella!"},
+        {"en": "Can you say, umbrella?"},
+        {"ask": "Umbrella!", "accept": ["umbrella"], "word": "umbrella", "wait": 4.5},
+        {"en": "Let's play a guessing game!"},
+        {"ko": "잘 듣고 무엇인지 영어로 말해 봐요."},
+        {"en": "Drip, drop! Is it the sun, or rain?"},
+        {"ask": "Rain!", "accept": ["rain"], "word": "rain", "wait": 4.5},
+        {"en": "It's white and fluffy. Is it a cloud, or an umbrella?"},
+        {"ask": "A cloud!", "accept": ["cloud"], "word": "cloud", "wait": 4.5},
+        {"en": "It's hot and bright. What is it?"},
+        {"ask": "The sun!", "accept": ["sun"], "word": "sun", "wait": 4.5},
+        {"en": "Now let's talk about today."},
+        {"ko": "날씨는 'It's' 다음에 말해요."},
+        {"echo": "It's sunny."},
+        {"echo": "It's rainy."},
+        {"echo": "It's cloudy."},
+        {"en": "Your turn! Look outside. Is it sunny? Is it cloudy? Is it rainy?"},
+        {"ask": "It's sunny!", "accept": ["sunny", "rainy", "cloudy", "sun", "rain", "cloud", "snow"], "open": true, "wait": 6}
+      ]
+    },
+    {
+      "type": "CHANT",
+      "drop": 1,
+      "steps": [
+        {"en": "Let's chant! Say it after me."},
+        {"sfx": "beat"},
+        {"echo": "Sun, sun, shine, shine, shine!"},
+        {"echo": "Rain, rain, drip, drip, drop!"},
+        {"echo": "Cloud, cloud, float, float, float!"},
+        {"echo": "Umbrella, umbrella, pop, pop, pop!"},
+        {"sfx": "ding"},
+        {"en": "Wonderful chanting!"}
+      ]
+    },
+    {
+      "type": "ROLEPLAY",
+      "drop": 2,
+      "steps": [
+        {"en": "Let's play weather reporter! I'm the reporter."},
+        {"ko": "{call}, 날씨 기자 놀이해요!"},
+        {"en": "Good morning, everyone! Oh, the sky is bright and hot. What is it?"},
+        {"ask": "It's the sun!", "accept": ["sun", "sunny"], "word": "sun", "wait": 4.5},
+        {"en": "Oh no! Drip, drop! What do we need?"},
+        {"ask": "An umbrella!", "accept": ["umbrella"], "word": "umbrella", "wait": 4.5},
+        {"en": "Look! Something white and fluffy is floating by. What is it?"},
+        {"ask": "A cloud!", "accept": ["cloud"], "word": "cloud", "wait": 4.5},
+        {"en": "And now, what's the weather in your town? Look out the window!"},
+        {"ask": "It's cloudy!", "accept": ["sunny", "rainy", "cloudy", "sun", "rain", "cloud", "snow"], "open": true, "wait": 5.5},
+        {"en": "Thank you, weather reporter {name}!"}
+      ]
+    },
+    {
+      "type": "STORY",
+      "extra": true,
+      "steps": [
+        {"en": "Story time! Listen carefully."},
+        {"ko": "작은 구름 이야기를 들어 봐요."},
+        {"en": "Little Cloud was floating in the sky."},
+        {"en": "Mr. Sun said, I'm so hot! The flowers are thirsty."},
+        {"en": "Little Cloud said, I can help! Drip, drop, drip, drop."},
+        {"en": "Rain fell on the flowers. Thank you, Little Cloud!"},
+        {"en": "Then Mr. Sun came back, and look, a rainbow! The end."},
+        {"en": "Who made the rain?"},
+        {"ask": "Little Cloud!", "accept": ["cloud"], "word": "cloud", "wait": 4.5}
+      ]
+    },
+    {
+      "type": "WRAPUP",
+      "steps": [
+        {"en": "Great job, {name}! Today we said sun, rain, cloud, and umbrella."},
+        {"en": "Remember, when it rains, take your umbrella!"},
+        {"ko": "집에 갈 때 다시 날씨 이야기해요!"},
+        {"en": "See you later! Bye-bye!"},
+        {"sfx": "yay"}
+      ]
+    }
+  ]
+}

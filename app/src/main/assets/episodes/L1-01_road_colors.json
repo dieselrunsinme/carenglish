@@ -1,0 +1,99 @@
+{
+  "id": "L1-01",
+  "level": 1,
+  "title": "Colors on the Road",
+  "titleKo": "길에서 만난 색깔",
+  "emoji": "🚦",
+  "words": [
+    {"id": "red", "en": "red", "ko": "빨강", "emoji": "🔴", "clue": "Stop! The traffic light is this color. Apples are this color too."},
+    {"id": "green", "en": "green", "ko": "초록", "emoji": "🟢", "clue": "Go! The traffic light is this color. Leaves are this color too."},
+    {"id": "yellow", "en": "yellow", "ko": "노랑", "emoji": "🟡", "clue": "Bananas are this color. The school bus is this color too."},
+    {"id": "blue", "en": "blue", "ko": "파랑", "emoji": "🔵", "clue": "The sky is this color on a sunny day."}
+  ],
+  "blocks": [
+    {
+      "type": "GREETING",
+      "steps": [
+        {"en": "Look! The road is full of colors."},
+        {"ko": "오늘은 길에서 색깔을 찾아봐요."},
+        {"en": "Let's find colors together!"}
+      ]
+    },
+    {
+      "type": "EXPRESSION",
+      "steps": [
+        {"en": "The traffic light says, stop!"},
+        {"card": "red"},
+        {"en": "Red!"},
+        {"echo": "Red."},
+        {"en": "Can you say, red?"},
+        {"ask": "Red!", "accept": ["red"], "word": "red", "wait": 4},
+        {"en": "Now the traffic light says, go!"},
+        {"card": "green"},
+        {"en": "Green!"},
+        {"echo": "Green."},
+        {"en": "Can you say, green?"},
+        {"ask": "Green!", "accept": ["green"], "word": "green", "wait": 4},
+        {"en": "Beep, beep! Here comes the school bus."},
+        {"card": "yellow"},
+        {"en": "Yellow!"},
+        {"echo": "Yellow."},
+        {"en": "Can you say, yellow?"},
+        {"ask": "Yellow!", "accept": ["yellow"], "word": "yellow", "wait": 4},
+        {"en": "Look up at the sky."},
+        {"card": "blue"},
+        {"en": "Blue!"},
+        {"echo": "Blue."},
+        {"en": "Can you say, blue?"},
+        {"ask": "Blue!", "accept": ["blue"], "word": "blue", "wait": 4},
+        {"en": "Let's play a color game!"},
+        {"ko": "잘 듣고 색깔을 영어로 말해 봐요."},
+        {"en": "Stop! What color is the light?"},
+        {"ask": "Red!", "accept": ["red"], "word": "red", "wait": 4},
+        {"en": "Go! What color is the light?"},
+        {"ask": "Green!", "accept": ["green"], "word": "green", "wait": 4},
+        {"en": "What color is a banana?"},
+        {"ask": "Yellow!", "accept": ["yellow"], "word": "yellow", "wait": 4}
+      ]
+    },
+    {
+      "type": "CHANT",
+      "drop": 1,
+      "steps": [
+        {"en": "Let's chant! Say it after me."},
+        {"sfx": "beat"},
+        {"echo": "Red light, red light, stop, stop, stop!"},
+        {"echo": "Green light, green light, go, go, go!"},
+        {"echo": "Yellow, yellow, slow, slow, slow!"},
+        {"sfx": "ding"},
+        {"en": "Great job!"}
+      ]
+    },
+    {
+      "type": "ROLEPLAY",
+      "drop": 2,
+      "steps": [
+        {"en": "Let's play traffic light! I say the color, you say stop or go."},
+        {"ko": "{call}, 신호등 놀이해요! 빨강이면 스톱, 초록이면 고!"},
+        {"en": "Red light!"},
+        {"ask": "Stop!", "accept": ["stop"], "wait": 3.5},
+        {"en": "Green light!"},
+        {"ask": "Go!", "accept": ["go"], "wait": 3.5},
+        {"en": "Yellow light!"},
+        {"ask": "Slow!", "accept": ["slow", "slow down"], "wait": 3.5},
+        {"en": "Red light!"},
+        {"ask": "Stop!", "accept": ["stop"], "wait": 3.5},
+        {"en": "You're a great driver helper, {name}!"}
+      ]
+    },
+    {
+      "type": "WRAPUP",
+      "steps": [
+        {"en": "Today we found red, green, yellow, and blue."},
+        {"ko": "다음에 또 길에서 색깔을 찾아봐요!"},
+        {"en": "Bye-bye, {name}!"},
+        {"sfx": "yay"}
+      ]
+    }
+  ]
+}
