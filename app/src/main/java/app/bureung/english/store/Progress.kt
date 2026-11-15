@@ -75,9 +75,13 @@ class Progress(context: Context) {
         get() = prefs.getString("schoolKeyword", "유치원") ?: "유치원"
         set(v) = prefs.edit().putString("schoolKeyword", v.trim()).apply()
     var autoStart: Boolean
-        get() = prefs.getBoolean("autoStart", true)
+        get() = prefs.getBoolean("autoStart", false)
         set(v) = prefs.edit().putBoolean("autoStart", v).apply()
     /** lesson length when no route is being guided */
+    /** quicker answers: the lighter AI and voice models (a little less polished) */
+    var fastReply: Boolean
+        get() = prefs.getBoolean("fastReply", false)
+        set(v) = prefs.edit().putBoolean("fastReply", v).apply()
     /** seconds of quiet after which the turn passes back to 부릉이 */
     var pauseSec: Int
         get() = prefs.getInt("pauseSec", 3).coerceIn(2, 5)

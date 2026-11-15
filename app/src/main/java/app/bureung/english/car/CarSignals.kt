@@ -16,6 +16,7 @@ fun hasCarApi(context: Context): Boolean =
  * they are labelled as such on screen.
  */
 class CarSignals(private val context: Context, private val main: Handler, private val log: (String) -> Unit) {
+    private val wipersKeptOn = Runnable { setRain(true) }
     interface Listener {
         fun onGearChanged(old: Gear, new: Gear)
         fun onRainStarted()
@@ -88,7 +89,20 @@ class CarSignals(private val context: Context, private val main: Handler, privat
         if (gear != old) listener?.onGearChanged(old, gear)
     }
 
+    /**
+     * The wipers alone do not mean rain: a squirt of washer fluid or one mist wipe is over in a few seconds. Rain is
+     * the wipers kept going for about five wipes ([RAIN_AFTER_MS]); it is over as soon as they are switched off.
+     */
     private fun setWipers(on: Boolean) {
+        main.removeCallbacks(wipersKeptOn)
+        if (on) {
+            if (!realRain) main.postDelayed(wipersKeptOn, RAIN_AFTER_MS)
+        } else {
+            setRain(false)
+        }
+    }
+
+    private fun setRain(on: Boolean) {
         val was = raining
         realRain = on
         if (raining && !was) listener?.onRainStarted()
@@ -147,5 +161,10 @@ class CarSignals(private val context: Context, private val main: Handler, privat
         demoTemp = null
         if (gear != old) listener?.onGearChanged(old, gear)
         listener?.onDestinationChanged(destination)
+    }
+
+    private companion object {
+        /** the wipers kept going this long (about five wipes at the slow setting) count as rain */
+        const val RAIN_AFTER_MS = 7_000L
     }
 }

@@ -50,24 +50,22 @@ object TalkRules {
         "kill", "die", "dead", "blood", "gun", "knife", "hate", "stupid", "shut up", "sexy", "drunk", "beer", "wine",
     )
 
-    /**
-     * 부릉이 speaks first: a greeting and one question from what the car knows (rain from the wipers, the outside
-     * temperature, the way home). Built in the app, so it is ready the moment the intro tune ends.
-     */
-    fun greeting(name: String, hour: Int): String = if (hour < 12) "Good morning, $name!" else "Hi, $name!"
-
-    fun opener(name: String, mode: TripMode, hour: Int, scene: Scene): String {
-        val hi = greeting(name, hour)
-        val c = scene.outsideC
-        val question = when {
-            scene.raining -> "It's raining today. Do you like rain?"
-            c != null && c <= 5f -> "Brrr! It's cold today. Are you wearing a warm jacket?"
-            c != null && c >= 28f -> "Phew! It's hot today. Do you like ice cream?"
-            mode == TripMode.FROM_SCHOOL -> "What did you do today?"
-            else -> "How are you today?"
-        }
-        return "$hi $question"
+    /** 부릉이's hello, by the clock. Built in the app, so it is ready the moment the intro tune ends. */
+    fun greeting(name: String, hour: Int): String = when (hour) {
+        in 5..11 -> "Good morning, $name!"
+        in 12..17 -> "Good afternoon, $name!"
+        else -> "Good evening, $name!"
     }
+
+    /** the question that opens every talk when the navigation does not tell where the family is going */
+    const val WHERE = "Where are you going today?"
+
+    /**
+     * The first words are always the same: a greeting by the clock and "Where are you going today?". The car
+     * cannot know whether this is the way to kindergarten or home (nobody sets the navigation on a daily route), so
+     * the child tells it, and the talk starts from there. When the navigation does tell, [Scenario.opener] says so.
+     */
+    fun opener(name: String, hour: Int): String = "${greeting(name, hour)} $WHERE"
 
     fun closing(name: String): List<String> = listOf("Great talking today, $name!", "See you next time. Bye-bye!")
 

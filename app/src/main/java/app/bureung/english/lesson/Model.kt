@@ -118,7 +118,7 @@ data class ChatPlan(
     val review: List<String> = emptyList(),
     /** the language the recogniser listens in: Korean also catches mixed speech, English suits fluent children */
     val listen: Lang = Lang.KO,
-    /** a situation to talk about (상황별 학습), or null for a free conversation */
+    /** where the navigation says the family is going, or null (the child is asked) */
     val scenario: Scenario? = null,
 )
 
@@ -166,7 +166,7 @@ data class TalkTurn(
     val review: List<String>,
     val history: List<Said>,
     val heard: String,
-    /** the situation of this trip (상황별 학습), if one was chosen */
+    /** where the family is going, when the navigation tells */
     val situation: String? = null,
     /** sentences to bring in for the child to say, one at a time */
     val targets: List<String> = emptyList(),

@@ -67,9 +67,9 @@ object Planner {
         scenario: Scenario? = null,
     ): Plan {
         val name = moment.childName
-        // a chosen situation opens the talk; otherwise what the car knows does (rain, cold, the way home)
+        // where the navigation says the family is going, or else the child is asked
         val opener = scenario?.opener(name, moment.hour)
-            ?: TalkRules.opener(name, mode, moment.hour, Scene(moment.outsideC, moment.raining))
+            ?: TalkRules.opener(name, moment.hour)
         val intro = Block(
             BlockType.HELLO,
             listOf(Step.Sfx("intro", INTRO_SEC), Step.Say(opener, Lang.EN, buddy = true)),
@@ -91,7 +91,7 @@ object Planner {
             scenario = scenario,
         )
         val episode = if (scenario != null) {
-            Episode("chat:${scenario.id}", chat.level, scenario.titleKo, scenario.descKo, scenario.emoji, emptyList(), emptyList())
+            Episode("chat:${scenario.id}", chat.level, scenario.placeKo, scenario.situation, scenario.emoji, emptyList(), emptyList())
         } else {
             Episode("chat", chat.level, "부릉이와 자유 대화", "부릉이와 영어로 이야기해요", "🚗", emptyList(), emptyList())
         }

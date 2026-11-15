@@ -38,7 +38,7 @@ import app.bureung.english.lesson.TripMode
  * apps in D; the conversation keeps going behind it).
  */
 class MainActivity : Activity() {
-    enum class Tab(val label: String) { SCENES("상황별 학습"), WORDS("오늘의 표현"), REPORT("부모 리포트"), SETTINGS("설정") }
+    enum class Tab(val label: String) { WORDS("오늘의 표현"), REPORT("부모 리포트"), SETTINGS("설정") }
 
     private lateinit var parked: LinearLayout
     private lateinit var header: LinearLayout
@@ -58,14 +58,13 @@ class MainActivity : Activity() {
     private lateinit var verifyScroll: ScrollView
     private lateinit var verifyControls: LinearLayout
     private var verifyStamp = -1
-    private var verifyScenario: Scenario? = null
     private var parkedLevel: LevelBar? = null
     private lateinit var celebration: TextView
     private lateinit var root: FrameLayout
     private var consentView: View? = null
     private lateinit var tabs: Tabs
 
-    var tab = Tab.SCENES
+    var tab = Tab.WORDS
         private set
     private var tabStamp = ""
     private val watcher: () -> Unit = { render() }
@@ -516,18 +515,17 @@ class MainActivity : Activity() {
         }
 
         box.addView(head("대화", "실제 AI(Gemini)와 목소리를 그대로 써요. 기록은 부모 리포트에 남지 않아요."), matchWidth())
-        box.addView(labelled("상황", segmented(listOf<Pair<Scenario?, String>>(null to "자유") + Scenarios.all.map { it to it.emoji }, verifyScenario, 16) {
-            verifyScenario = it
-            render()
-        }), matchWidth())
         box.addView(labelled("영어 단계 · ${Levels.of(p.level).nameKo} (${Levels.of(p.level).buddyKo}) · 다음 대화부터", segmented(Levels.all.map { it.n to "${it.n}" }, p.level, 16) {
             p.level = it
             render()
         }), matchWidth())
+        box.addView(labelled("응답 속도 · AI ${Hub.talker.modelName}", segmented(listOf(false to "기본", true to "빠름"), p.fastReply, 16) {
+            Hub.setFastReply(it)
+        }), matchWidth())
         box.addView(hbox(10).apply {
             if (!e.isActive) {
                 addView(button("▶ 대화 시작", ButtonStyle.PRIMARY, 16) {
-                    if (Hub.chatAllowed()) Hub.startLesson(verifyScenario)
+                    if (Hub.chatAllowed()) Hub.startLesson(null)
                     else Toast.makeText(this@MainActivity, "AI 대화: ${Hub.talkBlocker() ?: "쓸 수 없어요"}", Toast.LENGTH_LONG).show()
                 }, weightWrap(1f))
             } else {
@@ -538,11 +536,11 @@ class MainActivity : Activity() {
 
         box.addView(divider())
         box.addView(head("차량 정보", "Pleos·차량 신호를 손으로 바꿔요. 대화 중에 바꾸면 바로 반영돼요."), matchWidth())
-        box.addView(labelled("기어 (D에 두면 3초 뒤 자동 시작)", segmented(listOf(false to "P 정차", true to "D 주행"), car.driving, 16) {
+        box.addView(labelled(if (p.autoStart) "기어 (자동 시작 켜짐: D에 두면 3초 뒤 시작)" else "기어 (자동 시작 꺼짐: 설정에서 켤 수 있어요)", segmented(listOf(false to "P 정차", true to "D 주행"), car.driving, 16) {
             car.demoSetDriving(it)
             render()
         }), matchWidth())
-        box.addView(labelled("와이퍼 (비)", segmented(listOf(false to "꺼짐", true to "켜짐"), car.demoRain, 16) {
+        box.addView(labelled("와이퍼 5회 이상 작동 (비)", segmented(listOf(false to "꺼짐", true to "켜짐"), car.demoRain, 16) {
             car.demoSetRain(it)
             if (!it) said("와이퍼 꺼짐") else render()
         }), matchWidth())
@@ -550,12 +548,11 @@ class MainActivity : Activity() {
             car.demoSetTemp(it)
             said("바깥 온도 ${it?.let { c -> "${c.toInt()}°C" } ?: "실제 값"}")
         }), matchWidth())
-        val routes = listOf("" to "없음", "해님유치원" to "유치원 10분", "우리집" to "집 8분", "할머니댁" to "할머니댁 15분")
+        val routes = listOf("" to "없음", "해님유치원" to "유치원", "할머니댁" to "할머니댁", "에버랜드" to "에버랜드", "튼튼소아과" to "소아과")
         box.addView(labelled("내비 목적지와 남은 시간", segmented(routes, car.demoDestination?.name ?: "", 15) {
             when (it) {
                 "" -> car.demoClearRoute()
-                "해님유치원" -> car.demoRoute(it, 600)
-                "우리집" -> car.demoRoute(it, 480)
+                "해님유치원", "튼튼소아과" -> car.demoRoute(it, 600)
                 else -> car.demoRoute(it, 900)
             }
             said(if (it.isEmpty()) "길안내 없음" else "목적지 $it")
@@ -567,9 +564,8 @@ class MainActivity : Activity() {
             }, weightWrap(1f))
             addView(button("도착", ButtonStyle.SECONDARY, 15) { car.demoArrive() }, weightWrap(1f))
         }, matchWidth())
-        box.addView(labelled("등원길·하원길", segmented(listOf(ModeChoice.AUTO to "자동", ModeChoice.TO_SCHOOL to "등원", ModeChoice.FROM_SCHOOL to "하원"), p.modeChoice, 16) {
-            p.modeChoice = it
-            render()
+        box.addView(labelled("시간대 (인사가 달라져요 · 다음 대화부터)", segmented(listOf<Pair<Int?, String>>(null to "실제", 8 to "아침", 14 to "오후", 20 to "저녁"), Hub.verifyHour, 16) {
+            Hub.setVerifyHour(it)
         }), matchWidth())
         val d = car.destination
         val now = listOf(
@@ -592,7 +588,7 @@ class MainActivity : Activity() {
         driveTitle.text = when (e.state) {
             EngineState.PLAYING -> if (chat) "부릉이와 영어로 이야기 중" else "영어 수업 중"
             EngineState.PAUSED -> "잠깐 쉬는 중"
-            else -> if (Hub.progress.autoStart) "곧 이야기를 시작해요" else "정차 중에 대화를 켜 주세요"
+            else -> if (Hub.progress.autoStart) "곧 이야기를 시작해요" else "▶를 누르면 부릉이가 말을 걸어요"
         }
         val block = when {
             !e.isActive -> null
@@ -672,7 +668,7 @@ class MainActivity : Activity() {
 
         levelUpCard()?.let { lessonCard.addView(it.lp(matchWidth(), top = 14)) }
 
-        val auto = if (Hub.progress.autoStart) "D로 출발하면 3초 뒤에 자동으로 시작해요" else "자동 시작이 꺼져 있어요 · 설정에서 켤 수 있어요"
+        val auto = if (Hub.progress.autoStart) "출발하면(기어 D) 3초 뒤에 자동으로 시작해요" else "대화 시작을 누르면 시작해요 · 출발할 때 자동으로 시작하려면 설정에서 켜 주세요"
         lessonCard.addView(text(auto, 14, Palette.SUB).apply { gravity = Gravity.CENTER }.lp(matchWidth(), top = 12))
 
         Hub.lastSummary?.let { s ->
@@ -716,6 +712,10 @@ class MainActivity : Activity() {
             val length = if (dest != null) "${minutes(preview.plan.estimateSec)}분 · ${dest.name}까지" else "${minutes(preview.plan.estimateSec)}분 · 길안내 없음"
             val facts = listOfNotNull(length, "Level ${chat.level} ${levelName(chat.level)}", weather()).joinToString("   ·   ")
             addView(text(facts, 15, Palette.INK2), matchWidth())
+            // the navigation told where the family is going: say so, so the parent knows why the first words fit
+            chat.scenario?.let { place ->
+                addView(chip("📍 내비 목적지를 보니 ${place.emoji} ${place.placeKo}이에요", Palette.WHITE, Palette.INK), wrap())
+            }
             addView(button("▶  대화 시작", ButtonStyle.PRIMARY, 22) { startChat(null) }.apply { minHeight = dp(68) }.lp(matchWidth(), top = 6))
         }
         lessonCard.addView(hero, matchWidth())
@@ -726,24 +726,12 @@ class MainActivity : Activity() {
             !Hub.micGranted() -> "누르면 마이크 권한을 물어봐요"
             !Hub.chatAllowed() -> "AI 대화: ${Hub.talkBlocker() ?: "쓸 수 없어요"} · 지금 누르면 녹음 수업을 들려줘요"
             !Hub.online() -> "인터넷 연결이 없어요 · 지금 누르면 녹음 수업을 들려줘요"
-            else -> preview.reason + " · 도착 전에 부릉이가 알아서 마무리해요"
+            chat.scenario != null -> "내비 목적지에 맞춰 부릉이가 그곳 이야기로 시작해요 · 목적지 이름은 AI로 보내지 않아요"
+            Hub.car.destination != null -> "도착 전에 부릉이가 알아서 마무리해요 · 어디 가는지는 아이에게 물어봐요"
+            else -> "부릉이가 아이에게 어디 가는지 물어보며 시작해요"
         }
         lessonCard.addView(text(note, 14, Palette.SUB).lp(matchWidth(), top = 12))
 
-        // the navigation's destination suggests a situation ("○○ 할머니댁")
-        Hub.suggestedScenario()?.let { s ->
-            lessonCard.addView(hbox(14).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                background = rounded(Palette.BLUE_SOFT, 18)
-                setPadding(dp(20), dp(14), dp(16), dp(14))
-                addView(text(s.emoji, 32), wrap())
-                addView(vbox(2).apply {
-                    addView(text("내비 목적지에 맞는 상황", 13, Palette.SUB, bold = true), wrap())
-                    addView(text(s.titleKo, 18, Palette.INK, bold = true), wrap())
-                }, weightWrap(1f))
-                addView(button("이걸로 시작", ButtonStyle.SECONDARY, 15) { startChat(s) }, wrap())
-            }.lp(matchWidth(), top = 14))
-        }
     }
 
     /** A build without an AI key: the recorded lesson is the trip. */
@@ -759,7 +747,7 @@ class MainActivity : Activity() {
             addView(text(episode.emoji, 48), wrap())
         }.lp(matchWidth(), top = 6))
         val info = vbox().apply {
-            addView(row("수업", if (plan.mode == TripMode.TO_SCHOOL) "등원 · 새 표현" else "하원 · 복습"), matchWidth())
+            addView(row("수업", if (plan.mode == TripMode.TO_SCHOOL) "오전 · 새 표현" else "오후 · 복습"), matchWidth())
             val dest = Hub.car.destination
             val length = "${minutes(plan.estimateSec)}분"
             addView(row("길이", if (dest != null) "$length · ${dest.name}까지 ${minutes(dest.remainNow())}분" else "$length · 길안내 없음"), matchWidth())
@@ -784,11 +772,11 @@ class MainActivity : Activity() {
         lessonCard.addView(text(status, 15, if (playing) Palette.BLUE else Palette.SUB, bold = true), wrap())
         lessonCard.addView(hbox(16).apply {
             addView(vbox(4).apply {
-                addView(text(if (chat != null) "${chat.scenario?.let { it.emoji + " " } ?: ""}${chat.scenario?.titleKo ?: "부릉이와 이야기 중"}" else plan.episode.title, 28, bold = true, lines = 1), wrap())
+                addView(text(if (chat != null) "${chat.scenario?.let { it.emoji + " " } ?: ""}${chat.scenario?.placeKo ?: "부릉이와 이야기 중"}" else plan.episode.title, 28, bold = true, lines = 1), wrap())
                 val sub = when {
-                    chat != null -> (if (plan.mode == TripMode.TO_SCHOOL) "등원길" else "하원길") + " · Level ${chat.level} ${levelName(chat.level)}"
-                    plan.mode == TripMode.TO_SCHOOL -> "등원 · 새 표현"
-                    else -> "하원 · 복습"
+                    chat != null -> "Level ${chat.level} ${levelName(chat.level)}"
+                    plan.mode == TripMode.TO_SCHOOL -> "오전 · 새 표현"
+                    else -> "오후 · 복습"
                 }
                 addView(text(sub, 16, Palette.SUB), wrap())
             }, weightWrap(1f))

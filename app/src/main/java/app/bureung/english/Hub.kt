@@ -69,6 +69,8 @@ object Hub : LessonEvents, CarSignals.Listener {
     private const val TICK_MS = 5_000L
     /** closer than this to the destination, the conversation wraps up */
     private const val NEAR_METERS = 1000
+    /** the quickest text model that still listens to audio (설정 ▸ 응답 속도 ▸ 빠름) */
+    private const val FAST_MODEL = "gemini-3.5-flash-lite"
 
     val main = Handler(Looper.getMainLooper())
     private lateinit var app: Context
@@ -168,6 +170,7 @@ object Hub : LessonEvents, CarSignals.Listener {
             talker = GeminiTalker(gemini, main, { progress.aiTalk }, ::childNames, ::note, BuildConfig.GEMINI_MODEL)
             buddy = if (gemini.hasKey) BuddyVoice(app, gemini, main, ::note, BuildConfig.GEMINI_TTS_MODEL) else null
             voice = VoiceRouter(app, main, progress, ::note, buddy)
+            applySpeed()
             ears = EarsRouter(app, main, progress, ::note)
             ears.catcher.onLevel = ::micLevel
             car = CarSignals(app, main, ::note).also { it.listener = this }
@@ -204,6 +207,11 @@ object Hub : LessonEvents, CarSignals.Listener {
         main.post {
             log.addLast(text)
             while (log.size > 60) log.removeFirst()
+            // how long each step took, next to the conversation in 검증 모드
+            if (verify && text.startsWith("⏱")) {
+                verifyNote("시간", text.removePrefix("⏱ "))
+                changed()
+            }
         }
     }
 
@@ -222,7 +230,7 @@ object Hub : LessonEvents, CarSignals.Listener {
     private fun moment(): Moment = Moment(
         childName = progress.nameEn.ifBlank { "friend" },
         childNameKo = progress.nameKo.ifBlank { "친구" },
-        hour = LocalTime.now().hour,
+        hour = hourNow(),
         month = LocalDate.now().monthValue,
         outsideC = car.outsideCelsius(),
         raining = car.raining,
@@ -237,14 +245,18 @@ object Hub : LessonEvents, CarSignals.Listener {
         if (!started) return null
         val (mode, reason) = decideMode()
         val tripSec = tripSec()
+        // where the family is going: the card the parent picked, or else what the navigation's destination tells
+        val place = scenario ?: suggestedScenario()
         val plan = Planner.chat(
             mode, tripSec, moment(),
             review = progress.duePhrases(today()).take(MAX_REVIEW_PHRASES),
             listen = if (progress.listenEnglish) Lang.EN else Lang.KO,
-            scenario = scenario,
+            scenario = place,
         )
-        // "오전이라 등원 수업이에요" → "오전이라 등원길이에요"
-        val why = reason.replace(" 수업이에요", "길이에요").replace(" 수업으로", "길로")
+        val why = when {
+            place != null -> "내비 목적지에 맞춰 이야기해요"
+            else -> reason
+        }
         return Preview(plan, why, tripSec, car.destination != null)
     }
 
@@ -273,7 +285,11 @@ object Hub : LessonEvents, CarSignals.Listener {
         return Preview(plan, why, tripSec, car.destination != null, offline = talkBlocker() ?: "AI 대화를 쓸 수 없어요")
     }
 
-    /** the situation the navigation's destination suggests ("○○ 할머니댁" → 할머니댁에 가요), or null */
+    /**
+     * What the navigation's destination tells about where the family is going ("에버랜드" → 가족끼리 놀러가요), or null
+     * when it tells nothing (no route, or a name like a nearby school). Only this kind of place goes to the AI,
+     * never the destination's name or position.
+     */
     fun suggestedScenario(): Scenario? = if (started) Scenarios.forDestination(car.destination?.name) else null
 
     private const val MAX_REVIEW_PHRASES = 3
@@ -351,6 +367,22 @@ object Hub : LessonEvents, CarSignals.Listener {
      * The settings button: one sample answer to Gemini and 부릉이's voice back, so the parent (and the demo) can
      * check the key and the network before a drive. Sends only the fixed sample sentence below.
      */
+    // --- 응답 속도 -----------------------------------------------------------------------------------------------
+
+    /** "빠름": the lighter AI and voice models. "기본": the ones from the build (local.properties or the defaults). */
+    fun setFastReply(fast: Boolean) {
+        progress.fastReply = fast
+        applySpeed()
+        note("응답 속도: ${if (fast) "빠름" else "기본"} · AI ${talker.modelName} · 목소리 ${buddy?.modelName ?: "-"}")
+        changed()
+    }
+
+    private fun applySpeed() {
+        val fast = progress.fastReply
+        talker.useModel(if (fast) FAST_MODEL else BuildConfig.GEMINI_MODEL.ifBlank { GeminiTalker.MODEL })
+        buddy?.useModel(if (fast) BuddyVoice.FALLBACK_MODEL else BuildConfig.GEMINI_TTS_MODEL.ifBlank { BuddyVoice.MODEL })
+    }
+
     // --- 검증 모드 -----------------------------------------------------------------------------------------------
 
     /**
@@ -409,8 +441,8 @@ object Hub : LessonEvents, CarSignals.Listener {
         }
         val name = progress.nameEn.ifBlank { "friend" }
         val scene = Scene(car.outsideCelsius(), car.raining)
-        val hour = LocalTime.now().hour
-        val opener = TalkRules.opener(name, TripMode.FROM_SCHOOL, hour, scene)
+        val hour = hourNow()
+        val opener = TalkRules.opener(name, hour)
         val lines = ArrayList<String>()
         var within = 0
         val asked = ArrayList<Int>()
@@ -475,10 +507,10 @@ object Hub : LessonEvents, CarSignals.Listener {
         val mode = decideMode().first
         val turn = TalkTurn(
             child = name, level = progress.level, mode = mode,
-            hour = LocalTime.now().hour, month = LocalDate.now().monthValue,
+            hour = hourNow(), month = LocalDate.now().monthValue,
             scene = scene, events = emptyList(), secondsLeft = 300, last = false, switch = false, silent = false,
             review = emptyList(),
-            history = listOf(Said(false, TalkRules.opener(name, mode, LocalTime.now().hour, scene))),
+            history = listOf(Said(false, TalkRules.opener(name, hourNow()))),
             heard = "오늘 친구랑 블록 놀이 했어",
         )
         talker.reply(turn) { raw ->
@@ -505,24 +537,23 @@ object Hub : LessonEvents, CarSignals.Listener {
         }
     }
 
-    private fun decideMode(): Pair<TripMode, String> {
-        when (progress.modeChoice) {
-            ModeChoice.TO_SCHOOL -> return TripMode.TO_SCHOOL to "설정에서 등원 수업으로 정해 두었어요"
-            ModeChoice.FROM_SCHOOL -> return TripMode.FROM_SCHOOL to "설정에서 하원 수업으로 정해 두었어요"
-            ModeChoice.AUTO -> Unit
-        }
-        val d = car.destination
-        if (d != null) {
-            val keyword = progress.schoolKeyword
-            if (keyword.isNotBlank() && d.name.contains(keyword)) return TripMode.TO_SCHOOL to "목적지가 ${ira(d.name)} 등원 수업이에요"
-            val home = car.home
-            if (home != null && (d.latitude != 0.0 || d.longitude != 0.0) && meters(home.first, home.second, d.latitude, d.longitude) < 400) {
-                return TripMode.FROM_SCHOOL to "목적지가 집이라 하원 수업이에요"
-            }
-            if (listOf("집", "home", "Home", "HOME").any { d.name.contains(it) }) return TripMode.FROM_SCHOOL to "목적지가 ${ira(d.name)} 하원 수업이에요"
-        }
-        return if (LocalTime.now().hour < 12) TripMode.TO_SCHOOL to "오전이라 등원 수업이에요" else TripMode.FROM_SCHOOL to "오후라 하원 수업이에요"
+    /**
+     * Morning or afternoon, by the clock only. The car does not guess "to kindergarten" or "home": on a daily route
+     * nobody sets the navigation. (The recorded lessons teach new words in the morning and review them later.)
+     */
+    private fun decideMode(): Pair<TripMode, String> =
+        if (hourNow() < 12) TripMode.TO_SCHOOL to "오전이에요" else TripMode.FROM_SCHOOL to "오후예요"
+
+    /** 검증 모드 can pretend another time of day, to hear the morning, afternoon and evening greetings */
+    var verifyHour: Int? = null
+        private set
+
+    fun setVerifyHour(hour: Int?) {
+        verifyHour = hour
+        changed()
     }
+
+    private fun hourNow(): Int = (if (verify) verifyHour else null) ?: LocalTime.now().hour
 
     /** "해님유치원" → "해님유치원이라", "피아노" → "피아노라" */
     private fun ira(name: String): String {
@@ -556,9 +587,11 @@ object Hub : LessonEvents, CarSignals.Listener {
         session?.isActive = true
         updateSession(p.episode.title, PlaybackState.STATE_PLAYING)
         note("${if (p.chat != null) "대화" else "수업"} 시작: ${p.episode.id} ${p.mode} · 계획 ${p.estimateSec / 60}분 ${p.estimateSec % 60}초 / 예산 ${p.budgetSec}초")
-        verifyNote("앱", if (p.chat != null) "대화 시작 · Level ${p.chat.level} ${Levels.name(p.chat.level)} · ${if (p.mode == TripMode.TO_SCHOOL) "등원길" else "하원길"} · ${p.chat.scenario?.titleKo ?: "자유 대화"} · ${p.budgetSec / 60}분"
+        verifyNote("앱", if (p.chat != null) "대화 시작 · Level ${p.chat.level} ${Levels.name(p.chat.level)} · ${when (hourNow()) { in 5..11 -> "아침"; in 12..17 -> "오후"; else -> "저녁" }} 인사 · ${p.chat.scenario?.let { "내비: ${it.placeKo}" } ?: "가는 곳은 아이에게 물어봐요"} · ${p.budgetSec / 60}분"
             else "AI 대화를 쓸 수 없어 녹음 수업을 시작했어요 (${talkBlocker() ?: "이유 모름"})")
         engine.start(p)
+        // open the connection to the AI now, so the first answer does not wait for it
+        if (p.chat != null) Thread { gemini.warm() }.apply { isDaemon = true }.start()
         engine.scene = Scene(car.outsideCelsius(), car.raining)
         startTicker()
     }
@@ -713,7 +746,7 @@ object Hub : LessonEvents, CarSignals.Listener {
         if (new == Gear.DRIVE && progress.autoStart && armed && !engine.isActive) {
             main.postDelayed({
                 // the parent may still be setting the navigation: start a moment after D, if still driving
-                // starting by itself in D is always the free talk: a situation is only what the parent picks
+                // starting by itself in D: the talk fits the destination when the navigation tells where to
                 if (car.driving && armed && !engine.isActive) startLesson(null)
             }, AUTO_START_DELAY_MS)
         }

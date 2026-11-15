@@ -64,7 +64,7 @@ data class LessonSummary(
     val diary: List<DiaryEntry> = emptyList(),
     /** this trip was a conversation with 부릉이 (not a recorded lesson) */
     val chat: Boolean = false,
-    /** the situation talked about (상황별 학습), if any */
+    /** where the navigation said the family was going, if it did */
     val scenarioId: String? = null,
     /** seconds actually spent talking: pauses, and a car or emulator left asleep, do not count */
     val activeSec: Int = ((endedAtMs - startedAtMs) / 1000).toInt(),
@@ -497,7 +497,7 @@ class LessonEngine(
             history = history,
             heard = said,
             situation = c.scenario?.situation,
-            targets = c.scenario?.targets.orEmpty(),
+            targets = emptyList(),
             audio = audio,
             nearing = nearing,
         )

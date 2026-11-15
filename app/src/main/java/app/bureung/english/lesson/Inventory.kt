@@ -43,13 +43,8 @@ object Inventory {
         lines += TalkRules.ERROR_LINE
         lines += TalkRules.RESUME_LINE
         lines += TalkRules.QUESTIONS
-        for (mode in TripMode.values()) for (hour in listOf(8, 16)) {
-            for (scene in listOf(Scene(), Scene(raining = true), Scene(outsideC = 2f), Scene(outsideC = 30f))) {
-                lines += TalkRules.opener(nameEn, mode, hour, scene)
-            }
-        }
-        // each situation's first words (상황별 학습), morning and afternoon
-        for (s in Scenarios.all) for (hour in listOf(8, 16)) lines += s.opener(nameEn, hour)
+        for (hour in listOf(8, 14, 20)) lines += TalkRules.opener(nameEn, hour)
+        for (s in Scenarios.all) for (hour in listOf(8, 14, 20)) lines += s.opener(nameEn, hour)
         lines += TalkRules.closing(nameEn)
         lines += TalkRules.arrival(nameEn)
         add(Lines.rainSurprise())

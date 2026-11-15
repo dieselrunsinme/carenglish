@@ -12,4 +12,3 @@ captures/
 *.keystore
 secrets.properties
 __pycache__/
-.kotlin/

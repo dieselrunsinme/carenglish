@@ -97,7 +97,8 @@ class LessonTest {
         t2.clock.run(untilMs = 40_000)
         t2.engine.arrived("Harin", "하린")
         t2.clock.run()
-        val openers = Scenarios.all.flatMap { listOf(it.opener("Harin", 8), it.opener("Harin", 16)) }
+        val openers = Scenarios.all.flatMap { s -> listOf(8, 14, 20).map { s.opener("Harin", it) } } +
+            listOf(8, 14, 20).map { TalkRules.opener("Harin", it) }
         val said = (t.speaker.buddy + t2.speaker.buddy + TalkRules.QUESTIONS + openers).flatMap { Sentences.split(it) }
         assertTrue(said.size > 8)
         val missing = said.filter { it !in inventory }.distinct()
@@ -337,13 +338,14 @@ class LessonTest {
 
     @Test
     fun theCarSpeaksFirstFromWhatItKnows() {
-        fun opener(mode: TripMode, hour: Int, outsideC: Float? = null, raining: Boolean = false) =
+        fun opener(hour: Int, outsideC: Float? = null, raining: Boolean = false, mode: TripMode = TripMode.TO_SCHOOL) =
             Planner.chat(mode, 600, moment.copy(hour = hour, outsideC = outsideC, raining = raining)).chat!!.opener
-        assertEquals("Good morning, Harin! How are you today?", opener(TripMode.TO_SCHOOL, 8, 15f))
-        assertEquals("Good morning, Harin! Brrr! It's cold today. Are you wearing a warm jacket?", opener(TripMode.TO_SCHOOL, 8, 2f))
-        assertEquals("Hi, Harin! It's raining today. Do you like rain?", opener(TripMode.FROM_SCHOOL, 16, 2f, raining = true))
-        assertEquals("Hi, Harin! What did you do today?", opener(TripMode.FROM_SCHOOL, 16, 15f))
-        assertEquals("Hi, Harin! Phew! It's hot today. Do you like ice cream?", opener(TripMode.FROM_SCHOOL, 16, 31f))
+        // always the same: a greeting by the clock, then the child is asked where they are going
+        assertEquals("Good morning, Harin! Where are you going today?", opener(8, 15f))
+        assertEquals("Good morning, Harin! Where are you going today?", opener(8, 2f, raining = true))
+        assertEquals("Good afternoon, Harin! Where are you going today?", opener(16, 31f))
+        assertEquals("Good evening, Harin! Where are you going today?", opener(20, 15f))
+        assertEquals(opener(16, 15f), opener(16, 15f, mode = TripMode.FROM_SCHOOL))
 
         // the plan is the intro tune, 부릉이's first words, open talk, and a goodbye: no curriculum blocks
         val plan = Planner.chat(TripMode.FROM_SCHOOL, 600, moment.copy(hour = 16))
@@ -363,7 +365,7 @@ class LessonTest {
         assertTrue(summary.chat)
         // the tune, then 부릉이 first, in 부릉이's own voice
         assertEquals("intro", t.sounds.first())
-        assertEquals("Hi, Harin! What did you do today?", t.speaker.buddy.first())
+        assertEquals("Good afternoon, Harin! Where are you going today?", t.speaker.buddy.first())
         // each turn starts with the "your turn" cue, before anything is heard
         assertEquals(listOf("intro", "listen", "over"), t.sounds.take(3))
         assertEquals(t.talker.turns.size, t.sounds.count { it == "listen" })
@@ -598,24 +600,24 @@ class LessonTest {
     }
 
     @Test
-    fun aSituationOpensTheTalkAndBringsItsSentences() {
+    fun theDestinationTellsWhereTheFamilyIsGoing() {
         val grandma = Scenarios.GRANDMA
         val plan = Planner.chat(TripMode.TO_SCHOOL, 300, moment.copy(hour = 8), scenario = grandma)
-        assertEquals("Good morning, Harin! We're going to Grandma's house! Do you miss Grandma?", plan.chat!!.opener)
-        assertEquals("할머니댁에 가요", plan.episode.title)
-        val t = Talk(child = { "응 보고 싶어" }) { blocks.copy(say = "Me too! Say it with me!", repeat = "I miss Grandma.") }
+        assertEquals("Good morning, Harin! I see you're going to Grandma's house! What are you going to do there?", plan.chat!!.opener)
+        assertEquals("Good afternoon, Harin! I see you're going to see the doctor. How are you feeling today?", Scenarios.HOSPITAL.opener("Harin", 15))
+        val t = Talk(child = { "할머니랑 놀 거야" }) { blocks }
         t.engine.start(plan)
         t.clock.run()
         assertEquals(plan.chat!!.opener, t.speaker.buddy.first())
-        // every turn tells the AI where the family is going and which sentences to bring in
+        // every turn tells the AI the kind of place, never the destination's name; no sentences to practise
         assertTrue(t.talker.turns.isNotEmpty())
-        assertTrue(t.talker.turns.all { it.situation == grandma.situation && it.targets == grandma.targets })
-        assertTrue(t.speaker.buddy.contains("Me too! Say it with me! I miss Grandma."))
+        assertTrue(t.talker.turns.all { it.situation == grandma.situation && it.targets.isEmpty() })
         assertEquals("grandma", t.summary.scenarioId)
-        // a free conversation has none
-        val free = Talk(child = { "블록" }) { blocks }
+        // without a destination the child is asked, and the AI is told nothing about where
+        val free = Talk(child = { "유치원" }) { blocks }
         free.engine.start(Planner.chat(TripMode.FROM_SCHOOL, 200, moment.copy(hour = 16)))
         free.clock.run()
+        assertEquals("Good afternoon, Harin! Where are you going today?", free.speaker.buddy.first())
         assertTrue(free.talker.turns.all { it.situation == null && it.targets.isEmpty() })
         assertEquals(null, free.summary.scenarioId)
         // the navigation's destination suggests the situation
@@ -625,6 +627,9 @@ class LessonTest {
         assertEquals(Scenarios.MARKET, Scenarios.forDestination("이마트 성수점"))
         assertEquals(Scenarios.HOSPITAL, Scenarios.forDestination("튼튼소아과의원"))
         assertEquals(Scenarios.FRIEND, Scenarios.forDestination("뽀로로 키즈카페"))
+        assertEquals(Scenarios.OUTING, Scenarios.forDestination("에버랜드"))
+        // a name that tells nothing (Grandma's house found by the school next to it): the parent picks the card
+        assertEquals(null, Scenarios.forDestination("한빛중학교"))
         assertEquals(null, Scenarios.forDestination("햇살유치원"))
         assertEquals(null, Scenarios.forDestination(null))
     }

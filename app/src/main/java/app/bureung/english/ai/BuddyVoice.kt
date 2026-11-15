@@ -41,6 +41,13 @@ class BuddyVoice(
 
     val available: Boolean get() = gemini.hasKey
 
+    val modelName: String get() = model
+
+    /** Another voice model from now on (the faster one, or back). Lines already made stay as they are. */
+    fun useModel(name: String) {
+        if (name.isNotBlank()) model = name
+    }
+
     fun prefetch(text: String) = fetch(text) {}
 
     /** true when [text] can be played at once (made in this run, or kept from an earlier one) */
@@ -110,6 +117,7 @@ class BuddyVoice(
     private fun synthesize(text: String): File {
         val out = file(text)
         if (out.exists() && out.length() > 44) return out
+        val startedAt = System.currentTimeMillis()
         val response = try {
             gemini.generate(model, request(text, newShape), READ_TIMEOUT_MS)
         } catch (e: GeminiError) {
@@ -131,6 +139,9 @@ class BuddyVoice(
         val bytes = Base64.getDecoder().decode(inline.getString("data"))
         val mime = inline.optString("mimeType", inline.optString("mime_type"))
         out.writeBytes(if (isWav(bytes)) bytes else wav(bytes, rate(mime)))
+        val took = System.currentTimeMillis() - startedAt
+        val used = model
+        main.post { log("⏱ 목소리 ${"%.1f".format(took / 1000.0)}초 · ${text.split(' ').size}단어 ($used)") }
         lastError = null
         return out
     }

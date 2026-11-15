@@ -32,7 +32,6 @@ class Tabs(private val a: MainActivity) {
     fun stamp(tab: MainActivity.Tab): String {
         if (!Hub.started) return "${tab.name}:waiting"
         return when (tab) {
-            MainActivity.Tab.SCENES -> "C:${Hub.suggestedScenario()?.id}:${Hub.progress.lessons().size}"
             MainActivity.Tab.WORDS -> {
                 val plan = Hub.engine.plan?.takeIf { Hub.engine.isActive }
                 "W:${plan?.episode?.id}:${plan?.reviewIds}:${Hub.engine.lastCard?.id}:${Hub.progress.words().hashCode()}:${Hub.progress.lessons().size}"
@@ -49,7 +48,6 @@ class Tabs(private val a: MainActivity) {
             return
         }
         when (tab) {
-            MainActivity.Tab.SCENES -> scenes(body)
             MainActivity.Tab.WORDS -> words(body)
             MainActivity.Tab.REPORT -> report(body)
             MainActivity.Tab.SETTINGS -> settings(body)
@@ -61,46 +59,6 @@ class Tabs(private val a: MainActivity) {
             addView(a.text(value, 20, bold = true), matchWidth())
             caption?.let { addView(a.text(it, 14, Palette.SUB), matchWidth()) }
         }.lp(matchWidth(), top = top))
-    }
-
-    // --- situations ------------------------------------------------------------------------------------------------
-
-    /** 상황별 학습: a conversation about where the family is going, with a few sentences to practise on the way. */
-    private fun scenes(body: LinearLayout) {
-        title(body, "상황별 학습하기", "가는 곳에 맞춰 부릉이가 그 상황의 영어를 함께 연습해요. 누르면 바로 시작해요")
-        val suggested = Hub.suggestedScenario()
-        Scenarios.all.chunked(2).forEach { row ->
-            val line = a.hbox(14)
-            row.forEach { s -> line.addView(sceneCard(s, s == suggested), weightWrap(1f)) }
-            repeat(2 - row.size) { line.addView(View(a), weightWrap(1f)) }
-            body.addView(line, matchWidth())
-        }
-        body.addView(a.text(
-            "상황마다 연습할 문장 3개를 부릉이가 대화 속에서 자연스럽게 꺼내요. 내비 목적지 이름에 '할머니', '공항', '마트' 같은 말이 있으면 맞는 상황에 추천 표시가 떠요. D로 출발해 자동으로 시작할 때는 자유 대화예요.",
-            14, Palette.SUB,
-        ).lp(matchWidth(), top = 4))
-        if (Hub.lessonPreview() != null) {
-            body.addView(a.button("인터넷 없이 녹음 수업 듣기", ButtonStyle.GHOST, 15) {
-                if (!Hub.engine.isActive) Hub.startLesson(recorded = true)
-            }, matchWidth())
-        }
-    }
-
-    private fun sceneCard(s: Scenario, suggested: Boolean): View = a.vbox(6).apply {
-        // each situation on its own pastel tile
-        val tile = Palette.TILES[Scenarios.all.indexOf(s).coerceAtLeast(0) % Palette.TILES.size]
-        background = a.rounded(tile, 24, if (suggested) Palette.ACTIVE else null, 2.5)
-        setPadding(a.dp(22), a.dp(20), a.dp(22), a.dp(20))
-        addView(a.hbox(10).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            addView(a.badge(s.emoji, 64, 34))
-            if (suggested) addView(a.tag("내비 목적지 추천", Palette.BLUE, 13), wrap())
-        }, matchWidth())
-        addView(a.text(s.titleKo, 20, bold = true, lines = 1), matchWidth())
-        addView(a.text(s.descKo, 14, Palette.INK2, lines = 1), matchWidth())
-        addView(a.text("“${s.targets.first()}”", 15, Palette.BLUE, bold = true).lp(matchWidth(), top = 4))
-        isClickable = true
-        setOnClickListener { a.startChat(s) }
     }
 
     // --- words -----------------------------------------------------------------------------------------------------
@@ -215,7 +173,6 @@ class Tabs(private val a: MainActivity) {
         }, matchWidth())
 
         week(body, all, today)
-        practised(body, todays)
         diary(body, diary)
 
         val covered = diary.map { it.heard }.toSet()
@@ -232,7 +189,7 @@ class Tabs(private val a: MainActivity) {
         body.addView(a.card(24).apply {
             addView(a.text("다음 복습", 18, bold = true).lp(matchWidth(), bottom = 6))
             if (upcoming.isEmpty()) {
-                addView(a.text("연습한 문장은 그날 하원길, 3일 뒤, 7일 뒤 대화에서 부릉이가 다시 꺼내요.", 15, Palette.SUB), matchWidth())
+                addView(a.text("연습한 문장은 그날 다음 대화, 3일 뒤, 7일 뒤 대화에서 부릉이가 다시 꺼내요.", 15, Palette.SUB), matchWidth())
             }
             upcoming.groupBy { it.value.due }.forEach { (due, list) ->
                 val label = when (val d = due - today) {
@@ -252,8 +209,8 @@ class Tabs(private val a: MainActivity) {
             if (all.isEmpty()) addView(a.text("첫 대화를 기다리고 있어요.", 15, Palette.SUB), matchWidth())
             all.takeLast(6).reversed().forEach { r ->
                 val day = when (today - r.day) { 0L -> "오늘"; 1L -> "어제"; else -> "${today - r.day}일 전" }
-                val mode = if (r.mode == TripMode.TO_SCHOOL) "등원" else "하원"
-                val what = if (r.chat) "${Scenarios.byId(r.scenarioId)?.titleKo ?: "자유 대화"} · ${(r.seconds + 30) / 60}분 · ${r.hits}번 말함"
+                val mode = if (r.mode == TripMode.TO_SCHOOL) "오전" else "오후"
+                val what = if (r.chat) "${Scenarios.byId(r.scenarioId)?.placeKo ?: "대화"} · ${(r.seconds + 30) / 60}분 · ${r.hits}번 말함"
                 else "${r.title} · ${(r.seconds + 30) / 60}분" + if (r.asks == 0) "" else " · ${r.hits}/${r.asks}"
                 addView(a.row("$day $mode", what), matchWidth())
             }
@@ -268,26 +225,6 @@ class Tabs(private val a: MainActivity) {
             background = a.rounded(Palette.BLUE_SOFT, 24)
             addView(a.text("부릉부릉 플러스", 17, bold = true), matchWidth())
             addView(a.text("하루 10분 대화는 무료예요. 구독하면 시간 제한 없는 대화, 형제·친구와 함께 대화, 주간 성장 리포트가 열려요(AI 사용료는 구독료에 들어 있어요). 출품 버전은 모두 열려 있어요.", 15, Palette.INK2), matchWidth())
-        }, matchWidth())
-    }
-
-    /** 상황별 학습 today: each situation talked about, and which of its sentences the child said. */
-    private fun practised(body: LinearLayout, todays: List<app.bureung.english.store.LessonRecord>) {
-        val talks = todays.filter { it.chat && it.scenarioId != null }
-        if (talks.isEmpty()) return
-        fun norm(t: String) = t.lowercase().replace(Regex("[^a-z ]"), "").replace(Regex("\\s+"), " ").trim()
-        body.addView(a.card(24, 6).apply {
-            addView(a.text("상황별 학습", 18, bold = true).lp(matchWidth(), bottom = 4))
-            talks.groupBy { it.scenarioId }.forEach { (id, records) ->
-                val s = Scenarios.byId(id) ?: return@forEach
-                val said = records.flatMap { r -> r.diary.flatMap { listOfNotNull(it.recast, it.heard) } }.map(::norm)
-                val done = s.targets.filter { t -> said.any { it.contains(norm(t)) } }
-                addView(a.row("${s.emoji} ${s.titleKo}", "연습한 문장 ${done.size}/${s.targets.size}", if (done.size == s.targets.size) Palette.GOOD else Palette.INK2), matchWidth())
-                s.targets.forEach { t ->
-                    val ok = t in done
-                    addView(a.text("${if (ok) "✓" else "·"}  $t", 15, if (ok) Palette.BLUE else Palette.SUB, bold = ok), matchWidth())
-                }
-            }
         }, matchWidth())
     }
 
@@ -403,6 +340,11 @@ class Tabs(private val a: MainActivity) {
                 p.listenEnglish = it
                 true
             }.lp(matchWidth(), top = 12))
+            addView(choices("응답 속도", listOf(false to "기본", true to "빠름"), p.fastReply) {
+                Hub.setFastReply(it)
+                true
+            }.lp(matchWidth(), top = 12))
+            addView(a.text("빠름은 더 가벼운 AI와 목소리 모델을 써서 부릉이가 빨리 대답해요. 말이 조금 덜 자연스러울 수 있어요. 지금: AI ${Hub.talker.modelName} · 목소리 ${Hub.buddy?.modelName ?: "없음"}", 14, Palette.SUB), matchWidth())
             addView(choices("아이 말을 기다리는 시간", listOf(2 to "2초", 3 to "3초", 5 to "5초"), p.pauseSec) {
                 p.pauseSec = it
                 true
@@ -413,19 +355,11 @@ class Tabs(private val a: MainActivity) {
                 true
             }.lp(matchWidth(), top = 12))
             addView(a.text("길안내가 있으면 도착 시간에 맞춰 부릉이가 알아서 마무리해요.", 14, Palette.SUB), matchWidth())
-            addView(choices(
-                "가는 길",
-                listOf(ModeChoice.AUTO to "자동", ModeChoice.TO_SCHOOL to "등원", ModeChoice.FROM_SCHOOL to "하원"),
-                p.modeChoice,
-            ) {
-                p.modeChoice = it
-                true
-            }.lp(matchWidth(), top = 12))
-            addView(field("유치원·학원 이름 (내비 목적지에 이 말이 있으면 등원길)", p.schoolKeyword) { p.schoolKeyword = it }.lp(matchWidth(), top = 12))
-            addView(toggle("D로 출발하면 자동 시작", p.autoStart) {
+            addView(toggle("차량 운행 시 자동 시작", p.autoStart) {
                 p.autoStart = it
                 if (it) LessonService.start(a) else if (!Hub.engine.isActive) LessonService.stop(a)
             }.lp(matchWidth(), top = 8))
+            addView(a.text("켜 두면 시동을 걸고 출발할 때(기어 D)마다 부릉이가 3초 뒤에 말을 걸어요. 꺼 두면 '대화 시작'을 누를 때만 시작해요.", 14, Palette.SUB), matchWidth())
             addView(a.row("AI 대화 상태", Hub.talkBlocker() ?: "준비됨", if (Hub.talkReady()) Palette.GOOD else Palette.SUB).lp(matchWidth(), top = 8))
             addView(a.row("모델", Hub.talker.modelName), matchWidth())
             addView(a.button("AI 대화 시험", ButtonStyle.SECONDARY, 15) { Hub.testTalk() }.lp(matchWidth(), top = 10))

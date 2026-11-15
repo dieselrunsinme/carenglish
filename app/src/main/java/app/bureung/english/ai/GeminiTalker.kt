@@ -41,6 +41,14 @@ class GeminiTalker(
         private set
     val modelName: String get() = model
 
+    /** Another model from now on (the faster one, or back): its optional settings are tried afresh. */
+    fun useModel(name: String) {
+        if (name.isBlank() || name == model) return
+        model = name
+        useSchema = true
+        useThinking = true
+    }
+
     override val available: Boolean get() = gemini.hasKey && enabled()
 
     override fun reply(turn: TalkTurn, result: (TalkReply?) -> Unit) {
@@ -62,6 +70,9 @@ class GeminiTalker(
                 lastError = null
                 lastMs = System.currentTimeMillis() - startedAt
                 lastOkAt = System.currentTimeMillis()
+                val took = lastMs
+                val used = model
+                main.post { log("⏱ AI 대답 ${"%.1f".format(took / 1000.0)}초 ($used${if (turn.audio != null) ", 목소리 ${turn.audio.size / 32000}초 들음" else ""})") }
             }
             main.post { if (my == session) result(reply) }
         }
@@ -135,7 +146,7 @@ class GeminiTalker(
             append("Context:\n")
             append("- Level: ${turn.level}\n")
             val trip = turn.situation
-                ?: if (turn.mode == TripMode.FROM_SCHOOL) "on the way home from kindergarten" else "on the way to kindergarten"
+                ?: "a car ride with the family (where to is not known: you asked, so take the child's answer as the trip)"
             append("- Trip: $trip (${dayPart(turn.hour)}, ${MONTHS[(turn.month - 1).mod(12)]})\n")
             if (turn.targets.isNotEmpty()) append("- Sentences to practise on this trip: ${turn.targets.joinToString(" / ") { "\"$it\"" }}\n")
             val weather = listOfNotNull(
@@ -237,9 +248,9 @@ class GeminiTalker(
             - 4 (telling, about 8-9): 10 words or fewer. Use past and future too, and ask why, how, and what happened ("What did you eat for lunch?"). "repeat" is one natural full sentence ("I ate gimbap for lunch.").
             - 5 (conversation, about 9-10): 12 words or fewer, any tense. Ask for reasons and opinions, and follow up on the answer ("Why do you like it?"). "repeat" may join two parts with because, and, or but ("I like it because it's fun.").
 
-            Using the car: Context tells you the trip, the time of day, the weather outside, and anything that just happened. Bring these in naturally, at most one per answer. If it is cold, ask about warm clothes. If it is raining, talk about rain, umbrellas, puddles. On the way home, ask about the day. On the way to kindergarten, ask about today's plans, breakfast, or play. A line marked NEW just happened: mention it in this answer ("Oh, I think it's raining! Do you like rain?").
+            Using the car: Context tells you the trip, the time of day, the weather outside, and anything that just happened. Bring these in naturally, at most one per answer. If it is cold, ask about warm clothes. If it is raining, talk about rain, umbrellas, puddles. Your first question was where the child is going: when the child says it (kindergarten, home, Grandma's, the park), that is the trip, and keep coming back to it. Going home, ask about the day; going to kindergarten, ask about today's plans, breakfast, or play. A line marked NEW just happened: mention it in this answer ("Oh, I think it's raining! Do you like rain?").
             Earlier sentences: if Context lists sentences from earlier talks, bring one back in a question when it fits, so the child hears it again.
-            Situation: if the Trip is a situation (going to Grandma's, a trip, the supermarket), keep the talk about it while following the child's interest. If Context lists sentences to practise, bring them in one at a time when they fit: ask a question whose natural answer is that sentence, or invite the child to say it ("Can you say: I miss Grandma?"). Use each sentence once, and when the child says it, praise them.
+            Where to: if the Trip says where the family is going (Grandma's, the supermarket, a fun place), you already told the child you know it, so talk about that place while following the child's interest.
             Time: if Context says LAST TURN, give a warm reaction (and "repeat" if useful), set "ask" to null, and do not say goodbye (the app says it). If Context says Almost there, start winding the talk down gently: stay on what you are already talking about, bring up nothing new, and keep "ask" very short and easy (yes/no, or one word). Do not say goodbye yet, and do not mention the distance.
             Silence: if the child said nothing, do not repeat your question. Say something fun yourself and ask something easier (yes/no or two choices), or invite the child to say one word with you.
             Several children: if Context says the next question is for another child, start "ask" with "{next}, your turn!" and ask them something new.

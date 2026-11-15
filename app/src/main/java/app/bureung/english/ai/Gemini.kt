@@ -21,7 +21,9 @@ class Gemini(
     fun generate(model: String, body: JSONObject, readTimeoutMs: Int = 25_000): JSONObject {
         val url = URL("https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent")
         val c = url.openConnection() as HttpURLConnection
-        try {
+        // the connection is not closed afterwards: the next call (the voice, the next turn) reuses it and skips
+        // the handshake, which a waiting child would hear as silence
+        run {
             c.requestMethod = "POST"
             c.connectTimeout = 8_000
             c.readTimeout = readTimeoutMs
@@ -36,8 +38,20 @@ class Gemini(
             val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
             if (code !in 200..299) throw GeminiError(code, errorMessage(text))
             return JSONObject(text)
-        } finally {
-            c.disconnect()
+        }
+    }
+
+    /** Opens a connection ahead of the first question, so the first answer does not wait for the handshake. */
+    fun warm() {
+        if (!hasKey) return
+        runCatching {
+            val c = URL("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1").openConnection() as HttpURLConnection
+            c.connectTimeout = 5_000
+            c.readTimeout = 5_000
+            c.setRequestProperty("x-goog-api-key", key)
+            androidPackage?.let { c.setRequestProperty("X-Android-Package", it) }
+            androidCert?.let { c.setRequestProperty("X-Android-Cert", it) }
+            (if (c.responseCode in 200..299) c.inputStream else c.errorStream)?.use { it.readBytes() }
         }
     }
 
