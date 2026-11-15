@@ -42,7 +42,10 @@ object Inventory {
         lines += TalkRules.SILENT_LINE
         lines += TalkRules.ERROR_LINE
         lines += TalkRules.RESUME_LINE
-        lines += TalkRules.QUESTIONS
+        lines += TalkRules.TELL_MORE
+        lines += TalkRules.AHEAD
+        lines += TalkRules.MIDDAY
+        lines += TalkRules.BACK
         for (hour in listOf(8, 14, 20)) lines += TalkRules.opener(nameEn, hour)
         for (s in Scenarios.all) for (hour in listOf(8, 14, 20)) lines += s.opener(nameEn, hour)
         lines += TalkRules.closing(nameEn)

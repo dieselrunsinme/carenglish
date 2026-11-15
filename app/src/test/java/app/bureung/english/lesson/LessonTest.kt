@@ -99,7 +99,7 @@ class LessonTest {
         t2.clock.run()
         val openers = Scenarios.all.flatMap { s -> listOf(8, 14, 20).map { s.opener("Harin", it) } } +
             listOf(8, 14, 20).map { TalkRules.opener("Harin", it) }
-        val said = (t.speaker.buddy + t2.speaker.buddy + TalkRules.QUESTIONS + openers).flatMap { Sentences.split(it) }
+        val said = (t.speaker.buddy + t2.speaker.buddy + TalkRules.AHEAD + TalkRules.MIDDAY + TalkRules.BACK + TalkRules.TELL_MORE + openers).flatMap { Sentences.split(it) }
         assertTrue(said.size > 8)
         val missing = said.filter { it !in inventory }.distinct()
         assertTrue("not recorded: $missing", missing.isEmpty())
@@ -538,7 +538,8 @@ class LessonTest {
         offline.clock.run()
         assertEquals(2, offline.talker.turns.size)
         assertEquals(2, offline.speaker.buddy.count { it == TalkRules.ERROR_LINE })
-        assertTrue(offline.speaker.buddy.contains(TalkRules.QUESTIONS.first()))
+        // the spare question stays on what the child said
+        assertTrue(offline.speaker.buddy.contains(TalkRules.TELL_MORE))
         assertTrue(offline.summary.completed)
 
         // an answer that breaks the rules (Korean, far too long) is never spoken
@@ -553,7 +554,7 @@ class LessonTest {
         val t = Talk(child = { "블록" }) { turn -> blocks.copy(ask = null) }
         t.engine.start(Planner.chat(TripMode.FROM_SCHOOL, 200, moment.copy(hour = 16)))
         t.clock.run()
-        assertTrue(t.speaker.buddy.contains(TalkRules.QUESTIONS.first()))
+        assertTrue(t.speaker.buddy.contains(TalkRules.TELL_MORE))
         assertTrue(t.talker.turns.size >= 2)
 
         // a worry is kept for the parent; the talk goes on gently
@@ -769,4 +770,32 @@ class LessonTest {
         assertTrue(e2.blocks.none { it.type == BlockType.CHANT })
         assertTrue(e2.blocks.any { it.type == BlockType.EXPRESSION })
     }
+
+    @Test
+    fun theTalkLooksAheadInTheDayAndBackInTheEvening() {
+        // the AI is told what the talk is about by the clock: plans before the evening, what happened in the evening
+        fun promptAt(hour: Int): String {
+            val t = Talk(child = { "축구했어" }) { blocks }
+            t.engine.start(Planner.chat(TripMode.FROM_SCHOOL, 120, moment.copy(hour = hour)))
+            t.clock.run()
+            return app.bureung.english.ai.GeminiTalker.prompt(t.talker.turns.first())
+        }
+        assertTrue(promptAt(8).contains("Talk about: what the child is going to do today"))
+        assertTrue(promptAt(14).contains("Talk about: the day is half done"))
+        assertTrue(promptAt(20).contains("Talk about: what the child did today"))
+        assertTrue(app.bureung.english.ai.GeminiTalker.SYSTEM.contains("Follow the child"))
+
+        // without a question from the AI: first more of the same thing, then the child's day, ahead or back
+        val evening = Talk(child = { "축구했어" }) { blocks.copy(ask = null) }
+        evening.engine.start(Planner.chat(TripMode.FROM_SCHOOL, 300, moment.copy(hour = 19)))
+        evening.clock.run()
+        val asked = evening.speaker.buddy.filter { it in TalkRules.AHEAD + TalkRules.BACK + TalkRules.TELL_MORE }
+        assertEquals(TalkRules.TELL_MORE, asked.first())
+        assertTrue(asked.drop(1).isNotEmpty() && asked.drop(1).all { it == TalkRules.TELL_MORE || it in TalkRules.BACK })
+        assertEquals(listOf(TalkRules.AHEAD[0]), listOf(TalkRules.spare(8, 1, followUp = true)))
+        // a silent child is not asked for "more"
+        assertTrue(TalkRules.spare(20, 0, followUp = false) in TalkRules.BACK)
+        assertEquals(TalkRules.DayPart.EVENING, TalkRules.dayPart(2))
+    }
+
 }

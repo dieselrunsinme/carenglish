@@ -546,6 +546,8 @@ class LessonEngine(
         advance()
     }
 
+    private fun chatHour(): Int = plan?.chat?.moment?.hour ?: 12
+
     private fun respond(child: String, next: String, said: String, silent: Boolean, last: Boolean, switch: Boolean, reply: TalkReply?) {
         val steps = mutableListOf<Step>()
         fun say(text: String) {
@@ -558,7 +560,7 @@ class LessonEngine(
             if (last || chatErrors >= TalkRules.MAX_ERRORS) {
                 chatOver = true
             } else {
-                val question = TalkRules.QUESTIONS[chatQuestions++ % TalkRules.QUESTIONS.size]
+                val question = TalkRules.spare(chatHour(), chatQuestions++, followUp = !silent)
                 say(question)
                 chatHistory += Said(false, question)
                 steps += Step.Chat
@@ -572,7 +574,7 @@ class LessonEngine(
             }
             val ask = when {
                 last || reply.done -> null
-                else -> reply.ask ?: TalkRules.QUESTIONS[chatQuestions++ % TalkRules.QUESTIONS.size]
+                else -> reply.ask ?: TalkRules.spare(chatHour(), chatQuestions++, followUp = !silent)
             }
             // as few voice calls as possible: the reaction and the sentence to repeat in one, then room to repeat
             // it, then the question; without a sentence to repeat, the reaction and the question in one

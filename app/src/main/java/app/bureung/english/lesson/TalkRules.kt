@@ -34,14 +34,63 @@ object TalkRules {
     /** after a pause (a phone call), before listening again */
     const val RESUME_LINE = "I'm back! Tell me more."
 
-    /** easy questions for when the AI gives none (or cannot be reached) */
-    val QUESTIONS = listOf(
-        "What's your favorite color?",
-        "What do you like to eat?",
-        "Do you like animals?",
-        "What's your favorite toy?",
-        "Do you like to sing?",
+    /** after a child's answer, when the AI gives no question: ask for more of the same thing */
+    const val TELL_MORE = "Tell me more about it!"
+
+    /** spare questions for the morning and the afternoon: the day is still ahead */
+    val AHEAD = listOf(
+        "What are you going to do today?",
+        "Who will you play with today?",
+        "What do you want to play today?",
     )
+
+    /** spare questions for the afternoon: half of the day is done, half is ahead (home, or a class next) */
+    val MIDDAY = listOf(
+        "What did you do today?",
+        "What are you going to do next?",
+        "Who did you play with today?",
+    )
+
+    /** spare questions for the evening: the day is done */
+    val BACK = listOf(
+        "What did you do today?",
+        "What was the most fun today?",
+        "Who did you play with today?",
+        "What did you eat for lunch?",
+    )
+
+    /** the parts of the day, split the same way as the greeting */
+    enum class DayPart(val en: String) { MORNING("morning"), AFTERNOON("afternoon"), EVENING("evening") }
+
+    fun dayPart(hour: Int): DayPart = when (hour) {
+        in 5..11 -> DayPart.MORNING
+        in 12..17 -> DayPart.AFTERNOON
+        else -> DayPart.EVENING
+    }
+
+    /** in the evening the talk is about what the child did today; in the morning, about what the child will do */
+    fun looksBack(hour: Int): Boolean = dayPart(hour) == DayPart.EVENING
+
+    /** what the talk is about at this hour, as the AI is told it */
+    fun talkAbout(hour: Int): String = when (dayPart(hour)) {
+        DayPart.MORNING -> "what the child is going to do today (the day is still ahead)"
+        DayPart.AFTERNOON -> "the day is half done: going home, what the child did today; going somewhere (a class, a fun place), what the child is going to do there"
+        DayPart.EVENING -> "what the child did today (the day is done)"
+    }
+
+    /**
+     * The [n]th spare question when the AI gives none (or cannot be reached). After an answer ([followUp]) every
+     * other one asks for more of what the child just said, so the talk stays on the child's topic; the rest are
+     * about the child's day, ahead or back by the clock. Never an unrelated quiz question.
+     */
+    fun spare(hour: Int, n: Int, followUp: Boolean): String {
+        val day = when (dayPart(hour)) {
+            DayPart.MORNING -> AHEAD
+            DayPart.AFTERNOON -> MIDDAY
+            DayPart.EVENING -> BACK
+        }
+        return if (followUp) (if (n % 2 == 0) TELL_MORE else day[(n / 2) % day.size]) else day[n % day.size]
+    }
 
     /** tiny words 부릉이 says while the answer is on its way */
     val FILLERS = listOf("Hmm!", "Oh!", "I see!", "Okay!")
@@ -95,6 +144,9 @@ object TalkRules {
 
     /** the word count of the longest sentence in what was said (the steps limit each sentence, not the whole turn) */
     fun longest(line: String?): Int = line?.let { Sentences.split(it).maxOfOrNull(::words) } ?: 0
+
+    /** whether a question from the AI passes the rules (for the log: a dropped one is replaced by a spare) */
+    fun askOk(line: String): Boolean = ok(line.replace("{name}", "Name").replace("{next}", "Name"), MAX_ASK_WORDS)
 
     fun ok(line: String, maxWords: Int): Boolean {
         val words = line.split(' ').count { it.isNotBlank() }
