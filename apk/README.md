@@ -1,9 +1,9 @@
 # APK
 
-`bureung-english.apk`: Pleos Connect 에뮬레이터 v2.1.0에 바로 설치할 수 있는 빌드입니다(심사용으로 debug 키로 서명).
+`bureung-english-release.apk`: Pleos Connect 에뮬레이터 v2.1.0(2560×1440 · 160dpi)에 바로 설치할 수 있는 release 빌드입니다. 바로 설치되도록 디버그 키로 서명했습니다.
 
 ```bash
-adb install -r bureung-english.apk
+adb install -r bureung-english-release.apk
 ```
 
 ## 심사용 Gemini API 키
@@ -15,4 +15,4 @@ adb install -r bureung-english.apk
 - 소스 코드에는 키가 없습니다. 키는 빌드할 때 `local.properties`에서만 읽습니다.
 
 다시 만들려면 저장소 루트에서 `./gradlew assembleRelease`를 실행하고,
-`app/build/outputs/apk/release/app-release.apk`를 이 폴더에 `bureung-english.apk`로 복사합니다.
+`app/build/outputs/apk/release/app-release.apk`를 이 폴더에 `bureung-english-release.apk`로 복사합니다.

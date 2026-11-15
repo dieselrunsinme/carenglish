@@ -2,14 +2,25 @@
 
 유치원과 학원을 오가는 10분 동안, 차가 아이의 영어 말동무가 됩니다.
 
-Pleos Connect(Android Automotive) 차량용 앱입니다. 차 캐릭터 '부릉이'가 먼저 영어로 말을 걸고, 아이는 한국어를 섞어서 아무렇게나 대답해도 됩니다. 부릉이는 틀렸다고 하지 않고, 아이가 하려던 말을 바른 영어 문장으로 다시 들려주며 대화를 이어 갑니다. 대화 소재는 차가 아는 것에서 나옵니다(바깥 온도, 와이퍼, 시간대, 내비 목적지로 알 수 있는 가는 곳). 내비게이션의 남은 시간에 맞춰 도착 전에 알아서 마무리합니다. 주행 중에는 화면 없이 소리로만 진행하고, 아이 목소리는 녹음하지 않습니다.
+Pleos Connect(Android Automotive) 차량용 앱입니다. 차 캐릭터 '부릉이'가 먼저 영어로 말을 걸고, 아이는 한국어를 섞어서 아무렇게나 대답해도 됩니다. 부릉이는 틀렸다고 하지 않고, 아이가 하려던 말을 바른 영어 문장으로 다시 들려주며 대화를 이어 갑니다. 대화 소재는 차가 아는 것에서 나옵니다(바깥 온도, 와이퍼, 시간대, 내비 목적지로 알 수 있는 가는 곳). 내비게이션의 남은 시간에 맞춰 도착 전에 알아서 마무리합니다. 주행 중에는 화면 없이 소리로만 진행하고, 아이 목소리는 저장하지 않습니다(AI가 알아듣는 데 한 번 쓰고 버립니다).
 
 | | |
 |---|---|
-| 플랫폼 | Pleos Connect 에뮬레이터 v2.1.0 (Android Automotive, API 34) |
+| 플랫폼 | Pleos Connect 에뮬레이터 v2.1.0 (Android Automotive, API 34), 화면 2560×1440 · 160dpi |
 | 언어 | Kotlin, Android 프레임워크 뷰 (외부 UI 라이브러리 없음) |
 | AI | Google Gemini API (대화, 부릉이 목소리) |
-| APK | [`apk/`](apk/) 폴더 |
+| APK | [`apk/bureung-english-release.apk`](apk/bureung-english-release.apk) (release 빌드) |
+
+## 심사 안내
+
+| 항목 | 내용 |
+|---|---|
+| 앱 이름 · 한 줄 소개 | **부릉부릉 잉글리시**: 유치원과 학원을 오가는 10분 동안, 차가 아이의 영어 말동무가 됩니다. |
+| APK 위치 | [`apk/bureung-english-release.apk`](apk/bureung-english-release.apk). release 빌드이고, 에뮬레이터에 바로 설치되도록 디버그 키로 서명했습니다. 월 3만 원 지출 한도를 건 심사용 Gemini 키가 들어 있어 따로 설정할 것이 없습니다([apk/README.md](apk/README.md)). |
+| 에뮬레이터 버전 · 화면 규격 | Pleos Connect v2.1.0 (Android 14 / API 34, arm64), 기기 *Pleos Connect* 2560×1440 · 160dpi, RAM 4GB |
+| 테스트 환경 | macOS(Apple Silicon), Android Studio와 내장 JDK, Android Gradle Plugin 8.8.2, Gradle 8.10.2, Kotlin 2.0.21. `LessonTest` 31개 통과 |
+| 필요한 설정 | ① 인터넷 연결(AI 대화와 부릉이 목소리). ② 에뮬레이터 ⋯(Extended Controls) ▸ Microphone ▸ **Enable Host Microphone Access** 켜기(에뮬레이터를 켤 때마다). 마이크 없이 보려면 앱의 설정 ▸ **검증 모드 켜기**에서 아이 대답을 타이핑으로 넣을 수 있습니다. ③ 처음 실행할 때 보호자 동의 화면에서 **동의하고 시작하기**. 소스에서 직접 빌드할 때만 `local.properties`에 Gemini 키가 필요합니다([AI 대화 설정](#ai-대화-설정)). |
+| 실행 방법 | `adb install -r apk/bureung-english-release.apk` → 앱 열기 → **동의하고 시작하기** → **바로 대화 시작하기**. '띵동' 소리가 나면 말합니다. 자세한 순서는 [에뮬레이터에서 실행](#에뮬레이터에서-실행). |
 
 ## 처음 열면
 
@@ -119,12 +130,14 @@ Pleos SDK는 ON_DEVICE 모드만 쓰므로 Client ID/Secret이 필요 없고, �
 # → app/build/outputs/apk/release/app-release.apk (심사용으로 debug 키로 서명)
 ```
 
-Android Studio에서 이 폴더를 열고 Gradle 동기화 후 **Build ▸ Build APK(s)** 로도 만들 수 있습니다. Pleos SDK는 `settings.gradle.kts`의 Pleos Maven 저장소에서 받습니다.
+터미널의 Java가 너무 새 버전(예: 25)이면 Gradle이 실패합니다. Android Studio에 든 JDK를 쓰면 됩니다(macOS: `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`).
+
+Android Studio에서 이 폴더를 열고 Gradle 동기화 후, Build Variants에서 **release**를 고르고 **Build ▸ Build APK(s)** 로도 만들 수 있습니다. Pleos SDK는 `settings.gradle.kts`의 Pleos Maven 저장소에서 받습니다.
 
 ## 에뮬레이터에서 실행
 
-1. Android Studio ▸ SDK Manager ▸ SDK Update Sites에 Pleos Connect 이미지 주소를 추가하고, Automotive ▸ Pleos Connect v2.1.0으로 AVD를 만듭니다(RAM 4GB, Boot option **Cold boot**).
-2. `adb install -r apk/bureung-english.apk` 후 앱을 열고 권한을 허용합니다.
+1. Android Studio ▸ SDK Manager ▸ SDK Update Sites에 Pleos Connect 이미지 주소를 추가하고, Automotive ▸ Pleos Connect v2.1.0으로 AVD를 만듭니다(기기 Pleos Connect 2560×1440 · 160dpi, RAM 4GB, Boot option **Cold boot**).
+2. `adb install -r apk/bureung-english-release.apk` 후 앱을 열고 권한을 허용합니다.
 3. 동의 화면에서 **동의하고 시작하기**를 누르고, 에뮬레이터 ⋯(Extended Controls) ▸ Microphone ▸ **Enable Host Microphone Access**를 켭니다(에뮬레이터를 켤 때마다). 마이크 없이 보려면 설정 ▸ **검증 모드 켜기**에서 아이 대답을 타이핑으로 넣을 수 있습니다.
 4. **바로 대화 시작하기**를 누릅니다. 설정에서 '차량 운행 시 자동 시작'을 켰다면 Virtual Console에서 기어를 **D**로 바꿔도 됩니다(3초 뒤 시작). '띵동' 소리가 나면 마이크에 대고 말합니다.
 5. 내비게이션에서 목적지(예: 'OO유치원')를 정하고 모의 주행을 켜면 남은 시간에 맞춰 대화 길이가 정해집니다. 와이퍼를 켜거나 바깥 온도를 낮추면 부릉이의 말이 달라집니다.
